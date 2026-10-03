@@ -1,0 +1,104 @@
+.badge {
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px 0 24px;
+  border: 0;
+  border-radius: 32px;
+  box-shadow: var(--pr-shadow-cta);
+  color: var(--pr-on-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform var(--pr-duration-fast) var(--pr-ease),
+    background-color var(--pr-duration-fast) var(--pr-ease);
+}
+
+.badge:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.loading {
+  cursor: progress;
+}
+
+.loading .text {
+  gap: 6px;
+}
+
+.badge:disabled {
+  cursor: default;
+  box-shadow: none;
+}
+
+.primary {
+  background: var(--pr-primary);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--pr-primary-pressed);
+}
+
+.primary .subtitle {
+  color: var(--pr-on-primary-muted);
+}
+
+.primary .trailing {
+  color: var(--pr-primary);
+}
+
+.primary:disabled {
+  background: var(--pr-track);
+  color: var(--pr-disabled-fg);
+}
+
+.primary:disabled .subtitle,
+.primary:disabled .trailing {
+  color: var(--pr-disabled-fg);
+}
+
+.dark {
+  background: var(--pr-ink);
+}
+
+.dark .subtitle {
+  color: var(--pr-on-dark-muted);
+}
+
+.dark .trailing {
+  color: var(--pr-ink);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trailing {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--pr-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,18 @@
+.skeleton {
+  display: block;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.light {
+  background: var(--pr-track);
+}
+
+.onPrimary {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}

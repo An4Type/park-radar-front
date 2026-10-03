@@ -1,0 +1,45 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  box-shadow: var(--pr-shadow-float);
+  animation: fade-in var(--pr-duration) var(--pr-ease) backwards;
+}
+
+.neutral {
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+}
+
+.neutral .text {
+  color: var(--pr-ink-2);
+}
+
+.warning {
+  background: var(--pr-warn-bg);
+  color: var(--pr-warn-fg);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.text b {
+  color: inherit;
+  font-weight: 700;
+}
+
+.neutral .text b {
+  color: var(--pr-ink);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}

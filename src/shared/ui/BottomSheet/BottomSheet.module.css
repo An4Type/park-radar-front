@@ -1,0 +1,45 @@
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  padding: 10px var(--pr-edge) var(--pr-safe-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--pr-surface);
+  border-radius: var(--pr-radius-sheet) var(--pr-radius-sheet) 0 0;
+  box-shadow: var(--pr-shadow-sheet);
+  touch-action: none;
+  pointer-events: auto;
+  transition: transform var(--pr-duration) var(--pr-ease);
+  animation: slide-up 340ms var(--pr-ease) backwards;
+}
+
+@media (min-width: 640px) {
+  .sheet {
+    left: 50%;
+    right: auto;
+    width: 420px;
+    margin-left: -210px;
+  }
+}
+
+.grip {
+  width: 40px;
+  height: 5px;
+  flex: none;
+  align-self: center;
+  border-radius: 3px;
+  background: var(--pr-grip);
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
