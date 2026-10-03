@@ -1,8 +1,11 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import App from './App';
 
-test('renders without crashing', () => {
-  const { baseElement } = render(<App />);
-  expect(baseElement).toBeDefined();
+vi.mock('@/features/map/components/MapCanvas', () => ({
+  MapCanvas: () => <div data-testid="map" />,
+}));
+
+test('renders the home screen', async () => {
+  const { findByText } = render(<App />);
+  expect(await findByText('Where to?')).toBeInTheDocument();
 });
