@@ -5,27 +5,41 @@
 /.pnp
 .pnp.js
 
+# build output
+/dist
+/dev-dist
+*.tsbuildinfo
+
 # testing
 /coverage
+/cypress/screenshots
+/cypress/videos
+/cypress/downloads
 
-# production
-/dist
+# environment (keep .env.example committed)
+.env
+.env.*
+!.env.example
+
+# native build artefacts (platform folders have their own .gitignore too)
+/ios/DerivedData
+/android/.idea
+*.keystore
+*.jks
 
 # misc
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 /.nx
 /.nx/cache
 /.vscode/*
 !/.vscode/extensions.json
 .idea
 
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Optional eslint cache
 .eslintcache
