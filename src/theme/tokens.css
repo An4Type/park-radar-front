@@ -1,0 +1,67 @@
+:root {
+  --pr-blue-50: #eef3ff;
+  --pr-blue-100: #e3eafc;
+  --pr-blue-200: #b9ccf8;
+  --pr-blue-400: #7fa2f3;
+  --pr-blue-600: #2463eb;
+  --pr-blue-700: #1d4ed8;
+  --pr-primary: var(--pr-blue-600);
+  --pr-primary-pressed: var(--pr-blue-700);
+  --pr-on-primary: #ffffff;
+  --pr-on-primary-muted: var(--pr-blue-50);
+
+  --pr-heat-few-fill: #e3eafc;
+  --pr-heat-few-stroke: #9db6f4;
+  --pr-heat-some-fill: #b9ccf8;
+  --pr-heat-some-stroke: #7c9cf0;
+  --pr-heat-many-fill: #7fa2f3;
+  --pr-heat-many-stroke: #2463eb;
+  --pr-warn-bg: #fef3c7;
+  --pr-warn-fg: #92400e;
+  --pr-danger: #c0262d;
+
+  --pr-ink: #14171c;
+  --pr-ink-2: #3e434c;
+  --pr-muted: #5b616b;
+  --pr-border: #dde0e5;
+  --pr-divider: #eef0f2;
+  --pr-surface: #ffffff;
+  --pr-track: #e6e8ec;
+  --pr-grip: #d5d9de;
+  --pr-disabled-fg: #6b717b;
+  --pr-on-dark-muted: #c9cdd4;
+
+  --pr-map-ground: #f1f2f4;
+  --pr-map-park: #e4eedf;
+  --pr-map-road: #ffffff;
+  --pr-map-label: #868c96;
+  --pr-scrim: rgba(20, 23, 28, 0.32);
+  --pr-scrim-light: rgba(20, 23, 28, 0.12);
+
+  --pr-font: 'Figtree Variable', 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --pr-radius-seg: 10px;
+  --pr-radius-tile: 14px;
+  --pr-radius-card: 22px;
+  --pr-radius-sheet: 28px;
+  --pr-radius-pill: 999px;
+
+  --pr-space-1: 4px;
+  --pr-space-2: 8px;
+  --pr-space-3: 12px;
+  --pr-space-4: 16px;
+  --pr-space-5: 20px;
+  --pr-space-6: 24px;
+  --pr-edge: 20px;
+  --pr-safe-top: max(20px, calc(env(safe-area-inset-top, 0px) + 12px));
+  --pr-safe-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+
+  --pr-shadow-float: 0 3px 12px rgba(20, 23, 28, 0.14);
+  --pr-shadow-cta: 0 6px 18px rgba(20, 23, 28, 0.25);
+  --pr-shadow-popover: 0 8px 28px rgba(20, 23, 28, 0.18);
+  --pr-shadow-sheet: 0 -6px 24px rgba(20, 23, 28, 0.12);
+
+  --pr-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pr-duration-fast: 160ms;
+  --pr-duration: 280ms;
+}

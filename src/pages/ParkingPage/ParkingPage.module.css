@@ -1,0 +1,16 @@
+.back {
+  align-self: flex-start;
+}
+
+.loading,
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
