@@ -1,0 +1,15 @@
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pr-space-3);
+  transition:
+    opacity var(--pr-duration-fast) var(--pr-ease),
+    transform var(--pr-duration-fast) var(--pr-ease);
+}
+
+.hidden {
+  composes: top;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none !important;
+}

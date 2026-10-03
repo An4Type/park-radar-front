@@ -1,0 +1,86 @@
+.page {
+  background: var(--pr-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--pr-safe-top) var(--pr-edge) var(--pr-space-4);
+  animation: rise 320ms var(--pr-ease) backwards;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--pr-safe-bottom);
+  animation: rise 320ms 40ms var(--pr-ease) backwards;
+}
+
+.overline {
+  margin: 4px var(--pr-edge) 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pr-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.none {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pr-muted);
+}
+
+.skeletons {
+  padding: 0 var(--pr-edge);
+}
+
+.skeletonRow {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.skeletonRow + .skeletonRow {
+  border-top: 1px solid var(--pr-divider);
+}
+
+.message {
+  margin: 0;
+  padding: 24px var(--pr-edge);
+  color: var(--pr-muted);
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.message p {
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .header,
+  .body {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
