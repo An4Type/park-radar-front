@@ -1,0 +1,33 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pr-ink);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.many {
+  background: var(--pr-primary);
+}
+
+.some {
+  background: var(--pr-heat-many-fill);
+}
+
+.few {
+  background: var(--pr-surface);
+  border: 2px solid var(--pr-heat-few-stroke);
+}
+
+.full {
+  background: var(--pr-danger);
+}
