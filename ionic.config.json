@@ -1,0 +1,7 @@
+{
+  "name": "park-radar-front",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
