@@ -5,8 +5,12 @@ import styles from './InstructionCard.module.css';
 const MANEUVER_ICON: Record<Maneuver, IconName> = {
   depart: 'straight',
   straight: 'straight',
+  'slight-left': 'slightLeft',
+  'slight-right': 'slightRight',
   'turn-left': 'turnLeft',
   'turn-right': 'turnRight',
+  uturn: 'uturn',
+  roundabout: 'roundabout',
   arrive: 'place',
 };
 

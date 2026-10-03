@@ -26,6 +26,12 @@ const ICONS = {
   close: <path d="M6 6l12 12M18 6L6 18" />,
   check: <path d="M5 12l5 5 9-10" />,
   ev: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
+  accessible: (
+    <>
+      <circle cx="11" cy="4.5" r="1.6" />
+      <path d="M11 8v5h5l2.5 5M11 10.5h4M8.2 11.5a5.5 5.5 0 1 0 7.3 7.3" />
+    </>
+  ),
   place: (
     <>
       <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
@@ -47,6 +53,15 @@ const ICONS = {
   turnRight: <path d="M8 20V10h10M14 6l4 4-4 4" />,
   turnLeft: <path d="M16 20V10H6M10 6l-4 4 4 4" />,
   straight: <path d="M12 20V5M6 11l6-6 6 6" />,
+  slightLeft: <path d="M15 20v-6L7 6M7 12V6h6" />,
+  slightRight: <path d="M9 20v-6l8-8M17 12V6h-6" />,
+  uturn: <path d="M8 20V9a4 4 0 0 1 8 0v6M12 12l4 4 4-4" />,
+  roundabout: (
+    <>
+      <circle cx="12" cy="9" r="4" />
+      <path d="M12 13v8M16 9h4M18 7l2 2-2 2" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof ICONS;
