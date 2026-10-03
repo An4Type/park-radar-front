@@ -26,24 +26,3 @@ export function UserMarker({ position, heading, navigating }: { position: LatLng
     </Marker>
   );
 }
-
-export function CountBadge({ position, free, onClick }: { position: LatLng; free: number; onClick?: () => void }) {
-  return (
-    <Marker longitude={position.lng} latitude={position.lat} anchor="center" style={{ zIndex: 1 }}>
-      <button
-        type="button"
-        className={styles.badge}
-        onClick={(event) => {
-          event.stopPropagation();
-          onClick?.();
-        }}
-        aria-label={`${free} free spaces, open zone`}
-      >
-        <span className={styles.p} aria-hidden="true">
-          P
-        </span>
-        {free}
-      </button>
-    </Marker>
-  );
-}

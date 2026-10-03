@@ -1,0 +1,65 @@
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--pr-scrim-light);
+  pointer-events: auto;
+  cursor: default;
+  animation: fade 200ms var(--pr-ease) backwards;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.overline {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pr-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.list > * + * {
+  border-top: 1px solid var(--pr-divider);
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--pr-muted);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}

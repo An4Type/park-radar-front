@@ -7,6 +7,7 @@ export { InfoBanner, type InfoBannerProps } from './InfoBanner/InfoBanner';
 export { List, ListRow, type ListRowProps } from './ListRow/ListRow';
 export { MapScreen, type MapScreenProps } from './MapScreen/MapScreen';
 export { Meter, type MeterProps } from './Meter/Meter';
-export { OptionMenu, type Option, type OptionMenuProps } from './OptionMenu/OptionMenu';
 export { SearchInput, SearchTrigger, type SearchInputProps, type SearchTriggerProps } from './SearchField/SearchField';
+export { SegmentedControl, type SegmentedControlProps, type SegmentedOption } from './SegmentedControl/SegmentedControl';
 export { Skeleton } from './Skeleton/Skeleton';
+export { SwitchRow, type SwitchRowProps } from './Switch/SwitchRow';

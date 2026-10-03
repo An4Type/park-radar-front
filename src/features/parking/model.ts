@@ -1,16 +1,13 @@
-export type MultiPolygonCoords = number[][][][];
+export type Ring = number[][];
 
-export interface CellShape {
-  id: string;
-  ring: number[][];
-}
+export type MultiPolygonCoords = Ring[][];
 
-export interface ClusterOutline {
+export interface HexShape {
   id: string;
-  polygon: MultiPolygonCoords;
+  ring: Ring;
 }
 
 export interface ParkingGeometry {
-  cells: CellShape[];
-  clusters: ClusterOutline[];
+  hexes: HexShape[];
+  outline: MultiPolygonCoords;
 }

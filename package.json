@@ -36,6 +36,7 @@
     "h3-js": "^4.5.0",
     "ionicons": "^8.1.0",
     "maplibre-gl": "^6.11.2",
+    "polyclip-ts": "^0.16.8",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-map-gl": "^8.1.3",

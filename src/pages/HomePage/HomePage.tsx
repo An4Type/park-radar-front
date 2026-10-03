@@ -2,7 +2,7 @@ import { useIonRouter, useIonViewWillEnter } from '@ionic/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUserPosition } from '@/features/location/hooks';
 import { useLocationStore } from '@/features/location/locationStore';
-import { LayersControl, LayersScrim } from '@/features/map/components/LayersControl';
+import { LayersSheet } from '@/features/map/components/LayersSheet';
 import { useMapCamera } from '@/features/map/hooks/useMapCamera';
 import { useTripStore } from '@/features/navigation/tripStore';
 import { useParking } from '@/features/parking/hooks';
@@ -52,7 +52,13 @@ export default function HomePage() {
       }
       side={
         <>
-          <LayersControl open={layersOpen} onOpenChange={setLayersOpen} />
+          <IconButton
+            icon="layers"
+            label="Map layers"
+            variant={layersOpen ? 'active' : 'float'}
+            pressed={layersOpen}
+            onClick={() => setLayersOpen(true)}
+          />
           <IconButton
             icon="locate"
             label="Center on my location"
@@ -87,7 +93,8 @@ export default function HomePage() {
           <ActionBadge title="No free spaces nearby" subtitle="Search another area" icon="search" onClick={() => router.push(paths.search)} />
         )
       }
-      backdrop={layersOpen && <LayersScrim onClose={() => setLayersOpen(false)} />}
-    />
+    >
+      {layersOpen && <LayersSheet onClose={() => setLayersOpen(false)} />}
+    </MapScreen>
   );
 }

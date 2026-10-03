@@ -3,15 +3,14 @@ import { useMemo } from 'react';
 import { parkingApi, queryKeys } from '@/api';
 import { useUserPosition } from '@/features/location/hooks';
 import { roundLatLng } from '@/shared/lib/geo';
-import { indexParking, type ParkingIndex } from './lib/cellIndex';
+import { indexParking, type ParkingIndex } from './lib/hexIndex';
 
 export const LIVE_REFRESH_MS = 5_000;
 
 const EMPTY_INDEX: ParkingIndex = {
   points: [],
   byId: new Map(),
-  byCell: new Map(),
-  geometry: { cells: [], clusters: [] },
+  geometry: { hexes: [], outline: [] },
 };
 
 export function useParkingSnapshot() {
