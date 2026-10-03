@@ -1,0 +1,40 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--pr-surface);
+  border-radius: var(--pr-radius-card);
+  box-shadow: var(--pr-shadow-float);
+}
+
+.maneuver {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--pr-radius-tile);
+  background: var(--pr-primary);
+  color: var(--pr-on-primary);
+}
+
+.text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.distance {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.instruction {
+  font-size: 14px;
+  color: var(--pr-muted);
+}

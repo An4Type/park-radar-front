@@ -1,0 +1,26 @@
+.anchor {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 20px);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--pr-scrim-light);
+  pointer-events: auto;
+  cursor: default;
+  animation: fade 200ms var(--pr-ease) backwards;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
