@@ -31,10 +31,26 @@ const KNOWN_SITES: ReadonlyArray<Omit<Site, 'baseline' | 'phase' | 'active' | 'c
   { id: '00000000-0000-4000-8000-000000000005', name: 'Plac Wolności', address: 'Plac Wolności 18, Poznań', latitude: 52.4091, longitude: 16.9254, totalSpaces: 95 },
 ];
 
-const STREETS = [
+const STREETS: readonly string[] = [
   'Święty Marcin', 'Garbary', 'Wielka', 'Ratajczaka', 'Głogowska', 'Dąbrowskiego', 'Grunwaldzka',
   'Królowej Jadwigi', 'Strzelecka', 'Mostowa', 'Kościuszki', 'Fredry', 'Wierzbięcice', 'Towarowa',
-] as const;
+];
+
+const TAURON_ARENA: LatLng = { lat: 50.0677, lng: 19.9916 };
+
+const ARENA_SITES: ReadonlyArray<Omit<Site, 'baseline' | 'phase' | 'active' | 'confidence'>> = [
+  { id: 'tauron-arena-p1', name: 'Tauron Arena P1', address: 'Stanisława Lema 7, Kraków', latitude: 50.0684, longitude: 19.9893, totalSpaces: 600 },
+  { id: 'tauron-arena-p2', name: 'Tauron Arena P2', address: 'Stanisława Lema 7, Kraków', latitude: 50.0665, longitude: 19.9938, totalSpaces: 450 },
+  { id: 'tauron-arena-p3', name: 'Tauron Arena P3', address: 'Ofiar Dąbia, Kraków', latitude: 50.0662, longitude: 19.9886, totalSpaces: 280 },
+];
+
+const ARENA_STREETS: readonly string[] = [
+  'Stanisława Lema', 'Ofiar Dąbia', 'Aleja Pokoju', 'Fabryczna', 'Mogilska', 'Żabiego Kruka',
+  'Bajeczna', 'Cystersów', 'Rondo Grzegórzeckie', 'Dąbska', 'Lublańska', 'Meissnera',
+];
+
+const ARENA_RINGS = 6;
+const ARENA_DENSITY = 0.45;
 
 const KINDS = [
   { label: 'Parking', spaces: [12, 40] },
@@ -49,16 +65,19 @@ function siteDefaults(seed: number) {
   return { baseline: rnd(), phase: rnd() * Math.PI * 2, active: rnd() > 0.03, confidence: 0.7 + rnd() * 0.28 };
 }
 
-function citySites(anchor: LatLng): Site[] {
-  const origin = latLngToCell(anchor.lat, anchor.lng, SITE_RESOLUTION);
-  const cached = cityCache.get(origin);
-  if (cached) return cached;
-
-  const sites: Site[] = KNOWN_SITES.map((site) => ({ ...site, ...siteDefaults(hashString(site.id)), active: true }));
-
-  for (const cell of gridDisk(origin, CITY_RINGS)) {
+function generateArea(
+  center: string,
+  rings: number,
+  density: number,
+  streets: readonly string[],
+  seen: Set<string>,
+): Site[] {
+  const sites: Site[] = [];
+  for (const cell of gridDisk(center, rings)) {
+    if (seen.has(cell)) continue;
+    seen.add(cell);
     const seed = hashString(cell);
-    if ((seed % 1000) / 1000 >= SITE_DENSITY) continue;
+    if ((seed % 1000) / 1000 >= density) continue;
 
     const rnd = seededRandom(seed);
     const [lat, lng] = cellToLatLng(cell);
@@ -67,7 +86,7 @@ function citySites(anchor: LatLng): Site[] {
     for (let i = 0; i < count; i++) {
       const roll = rnd();
       const kind = KINDS[roll < 0.55 ? 0 : roll < 0.88 ? 1 : 2];
-      const street = STREETS[Math.floor(rnd() * STREETS.length)];
+      const street = streets[Math.floor(rnd() * streets.length)];
       const id = `mock-${cell}-${i}`;
       sites.push({
         id,
@@ -80,9 +99,35 @@ function citySites(anchor: LatLng): Site[] {
       });
     }
   }
+  return sites;
+}
+
+function citySites(anchor: LatLng): Site[] {
+  const origin = latLngToCell(anchor.lat, anchor.lng, SITE_RESOLUTION);
+  const cached = cityCache.get(origin);
+  if (cached) return cached;
+
+  const sites: Site[] = [...KNOWN_SITES, ...ARENA_SITES].map((site) => ({
+    ...site,
+    ...siteDefaults(hashString(site.id)),
+    active: true,
+  }));
+
+  const seen = new Set<string>();
+  const arenaCell = latLngToCell(TAURON_ARENA.lat, TAURON_ARENA.lng, SITE_RESOLUTION);
+  sites.push(...generateArea(arenaCell, ARENA_RINGS, ARENA_DENSITY, ARENA_STREETS, seen));
+  sites.push(...generateArea(origin, CITY_RINGS, SITE_DENSITY, STREETS, seen));
 
   cityCache.set(origin, sites);
   return sites;
+}
+
+function specialSpaces(site: Site) {
+  const rnd = seededRandom(hashString(`${site.id}:special`));
+  const accessible = site.totalSpaces < 8 ? 0 : Math.max(1, Math.round(site.totalSpaces * (0.02 + rnd() * 0.03)));
+  const evChance = site.totalSpaces >= 40 ? 0.65 : 0.15;
+  const ev = rnd() < evChance ? 1 + Math.floor(rnd() * Math.min(16, 2 + site.totalSpaces * 0.04)) : 0;
+  return { accessibleSpaces: accessible, evChargingSpaces: ev };
 }
 
 function freeAt(site: Site, now: number): number {
@@ -106,6 +151,7 @@ export function parkingDtos(anchor: LatLng, now = Date.now()): ParkingDto[] {
       totalSpaces: site.totalSpaces,
       occupiedSpaces: site.totalSpaces - freeSpaces,
       freeSpaces,
+      ...specialSpaces(site),
       status: site.active ? 'ACTIVE' : 'INACTIVE',
       confidence: Math.round(site.confidence * 100) / 100,
       lastUpdatedAt: new Date(now - updatedSecondsAgo * 1000).toISOString(),

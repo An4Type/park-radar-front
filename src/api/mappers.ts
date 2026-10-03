@@ -12,6 +12,8 @@ export function toParkingPoint(dto: ParkingDto): ParkingPoint {
     lng: dto.longitude,
     capacity: dto.totalSpaces,
     free: active ? Math.min(dto.freeSpaces, dto.totalSpaces) : 0,
+    accessibleSpaces: dto.accessibleSpaces,
+    evChargingSpaces: dto.evChargingSpaces,
     active,
     confidence: dto.confidence,
     updatedAt: dto.lastUpdatedAt,

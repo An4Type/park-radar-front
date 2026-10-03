@@ -14,6 +14,8 @@ export const ParkingDtoSchema = z.object({
   totalSpaces: z.number().int().nonnegative(),
   occupiedSpaces: z.number().int().nonnegative(),
   freeSpaces: z.number().int().nonnegative(),
+  accessibleSpaces: z.number().int().nonnegative().default(0),
+  evChargingSpaces: z.number().int().nonnegative().default(0),
   status: z.string(),
   confidence: z.number().min(0).max(1).default(1),
   lastUpdatedAt: z.string().datetime(),
@@ -31,7 +33,17 @@ export const DestinationSchema = z.object({
 
 export const DestinationListSchema = z.array(DestinationSchema);
 
-export const ManeuverSchema = z.enum(['depart', 'straight', 'turn-left', 'turn-right', 'arrive']);
+export const ManeuverSchema = z.enum([
+  'depart',
+  'straight',
+  'slight-left',
+  'slight-right',
+  'turn-left',
+  'turn-right',
+  'uturn',
+  'roundabout',
+  'arrive',
+]);
 
 export const RouteStepSchema = z.object({
   maneuver: ManeuverSchema,

@@ -1,3 +1,4 @@
+import { distanceMeters } from '@/shared/lib/geo';
 import { ParkingResponseSchema, RouteSchema } from '../schemas';
 import { createMockParkingApi } from './mockParkingApi';
 import { parkingDtos, TICK_MS } from './pointGenerator';
@@ -34,7 +35,7 @@ describe('mock parking API', () => {
   });
 
   it('builds a route that ends at the destination', async () => {
-    const api = createMockParkingApi({ latency: [0, 0] });
+    const api = createMockParkingApi({ latency: [0, 0], roadRouting: false });
     const to = { lat: 52.4009, lng: 16.9281 };
     const route = RouteSchema.parse(await api.getRoute({ from: poznan, to }));
     expect(route.geometry.at(-1)).toEqual(to);
@@ -47,5 +48,22 @@ describe('mock parking API', () => {
     const pending = slow.getSnapshot({ near: poznan }, controller.signal);
     controller.abort();
     await expect(pending).rejects.toMatchObject({ kind: 'aborted' });
+  });
+});
+
+describe('Tauron Arena mock area', () => {
+  const arena = { lat: 50.0677, lng: 19.9916 };
+
+  it('always includes the arena lots and dense parking around the arena', () => {
+    const dtos = parkingDtos(poznan, t0);
+    expect(dtos.map((d) => d.name)).toEqual(expect.arrayContaining(['Tauron Arena P1', 'Tauron Arena P2']));
+    const nearArena = dtos.filter((d) => distanceMeters(arena, { lat: d.latitude, lng: d.longitude }) < 800);
+    expect(nearArena.length).toBeGreaterThan(20);
+  });
+
+  it('finds the arena in search', async () => {
+    const api = createMockParkingApi({ latency: [0, 0] });
+    const [hit] = await api.searchDestinations({ query: 'tauron', near: poznan });
+    expect(hit).toMatchObject({ name: 'Tauron Arena Kraków', location: arena });
   });
 });

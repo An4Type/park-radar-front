@@ -25,6 +25,8 @@ export interface ParkingPoint {
   lng: number;
   capacity: number;
   free: number;
+  accessibleSpaces: number;
+  evChargingSpaces: number;
   active: boolean;
   confidence: number;
   updatedAt: string;

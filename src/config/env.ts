@@ -12,6 +12,7 @@ const EnvSchema = z.object({
   VITE_API_MODE: z.enum(['mock', 'http']).default('mock'),
   VITE_API_BASE_URL: z.string().url().default('http://localhost:8080/v1'),
   VITE_MAP_STYLE_URL: z.string().url().default('https://tiles.openfreemap.org/styles/positron'),
+  VITE_ROUTING_URL: z.string().url().default('https://router.project-osrm.org'),
   VITE_DEFAULT_CENTER: latLngPair.default({ lat: 52.4083, lng: 16.9335 }),
 });
 
@@ -21,5 +22,6 @@ export const env = {
   apiMode: parsed.VITE_API_MODE,
   apiBaseUrl: parsed.VITE_API_BASE_URL,
   mapStyleUrl: parsed.VITE_MAP_STYLE_URL,
+  routingUrl: parsed.VITE_ROUTING_URL,
   defaultCenter: parsed.VITE_DEFAULT_CENTER,
 } as const;

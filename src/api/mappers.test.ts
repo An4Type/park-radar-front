@@ -25,6 +25,8 @@ describe('toParkingPoint', () => {
       lng: 16.9281,
       capacity: 320,
       free: 147,
+      accessibleSpaces: 0,
+      evChargingSpaces: 0,
       active: true,
       confidence: 0.92,
       updatedAt: '2026-10-03T15:50:05.630Z',

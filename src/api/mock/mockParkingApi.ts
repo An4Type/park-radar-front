@@ -5,11 +5,13 @@ import { ParkingResponseSchema } from '../schemas';
 import type { Destination, LatLng, ParkingApi } from '../types';
 import { DESTINATIONS } from './fixtures';
 import { parkingDtos } from './pointGenerator';
+import { osrmRoute } from './osrmRoute';
 import { routeBetween } from './routeGenerator';
 
 export interface MockOptions {
   latency?: [number, number];
   now?: () => number;
+  roadRouting?: boolean;
 }
 
 function delay([min, max]: [number, number], signal?: AbortSignal): Promise<void> {
@@ -38,7 +40,11 @@ function offset(origin: LatLng, east: number, north: number): LatLng {
 
 const SUGGESTION_COUNT = 6;
 
-export function createMockParkingApi({ latency = [120, 380], now = Date.now }: MockOptions = {}): ParkingApi {
+export function createMockParkingApi({
+  latency = [120, 380],
+  now = Date.now,
+  roadRouting = true,
+}: MockOptions = {}): ParkingApi {
   return {
     async getSnapshot({ near }, signal) {
       await delay(latency, signal);
@@ -52,15 +58,27 @@ export function createMockParkingApi({ latency = [120, 380], now = Date.now }: M
       const needle = query.trim().toLowerCase();
 
       const results: Destination[] = DESTINATIONS.filter((d) => !needle || d.name.toLowerCase().includes(needle))
-        .map((d) => ({ id: d.id, name: d.name, location: offset(anchor, d.east, d.north) }))
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          location: 'location' in d ? d.location : offset(anchor, d.east, d.north),
+        }))
         .sort((a, b) => distanceMeters(near, a.location) - distanceMeters(near, b.location));
 
       return needle ? results : results.slice(0, SUGGESTION_COUNT);
     },
 
     async getRoute({ from, to }, signal) {
-      await delay(latency, signal);
-      return routeBetween(from, to);
+      if (!roadRouting) {
+        await delay(latency, signal);
+        return routeBetween(from, to);
+      }
+      try {
+        return await osrmRoute(from, to, signal);
+      } catch (error) {
+        if (signal?.aborted) throw new ApiError('aborted', 'Request was cancelled', { cause: error });
+        return routeBetween(from, to);
+      }
     },
   };
 }
