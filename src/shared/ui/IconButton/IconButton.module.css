@@ -1,0 +1,49 @@
+.button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform var(--pr-duration-fast) var(--pr-ease),
+    background-color var(--pr-duration-fast) var(--pr-ease),
+    color var(--pr-duration-fast) var(--pr-ease);
+}
+
+.button:active {
+  transform: scale(0.94);
+}
+
+.float {
+  width: 52px;
+  height: 52px;
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+  box-shadow: var(--pr-shadow-float);
+}
+
+.active {
+  width: 52px;
+  height: 52px;
+  background: var(--pr-ink);
+  color: var(--pr-surface);
+  box-shadow: var(--pr-shadow-float);
+}
+
+.flat {
+  width: 48px;
+  height: 48px;
+  background: var(--pr-map-ground);
+  color: var(--pr-ink);
+}
+
+.outline {
+  width: 44px;
+  height: 44px;
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  color: var(--pr-ink);
+}

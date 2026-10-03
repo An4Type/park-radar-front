@@ -1,0 +1,51 @@
+.button {
+  height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 26px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform var(--pr-duration-fast) var(--pr-ease),
+    background-color var(--pr-duration-fast) var(--pr-ease);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  background: var(--pr-track);
+  color: var(--pr-disabled-fg);
+  border-color: transparent;
+  cursor: default;
+}
+
+.block {
+  width: 100%;
+}
+
+.primary {
+  background: var(--pr-primary);
+  color: var(--pr-on-primary);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--pr-primary-pressed);
+}
+
+.secondary {
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+  border: 1.5px solid var(--pr-border);
+}
+
+.text {
+  height: 44px;
+  padding: 0 8px;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--pr-primary-pressed);
+  font-size: 15px;
+}

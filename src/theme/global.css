@@ -1,0 +1,60 @@
+html,
+body {
+  background: var(--pr-map-ground);
+  color: var(--pr-ink);
+  font-family: var(--pr-font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--pr-primary-pressed);
+}
+
+:focus-visible {
+  outline: 3px solid var(--pr-primary);
+  outline-offset: 2px;
+}
+
+.pr-map-host {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+ion-router-outlet.pr-outlet {
+  z-index: 1;
+  pointer-events: none;
+}
+
+ion-router-outlet.pr-outlet > .ion-page {
+  pointer-events: auto;
+}
+
+ion-router-outlet.pr-outlet > .ion-page.pr-overlay-page {
+  pointer-events: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+  margin: 0 0 4px 8px;
+  font-family: var(--pr-font);
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
