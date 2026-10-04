@@ -23,7 +23,7 @@ export interface InstructionCardProps {
 export function InstructionCard({ maneuver, distance, instruction }: InstructionCardProps) {
   const loading = !maneuver;
   return (
-    <div className={styles.card} role="status" aria-live="polite" aria-busy={loading}>
+    <div className={styles.card} aria-busy={loading}>
       <span className={styles.maneuver}>
         {maneuver && <Icon name={MANEUVER_ICON[maneuver]} size={24} strokeWidth={2.4} />}
       </span>
@@ -36,10 +36,15 @@ export function InstructionCard({ maneuver, distance, instruction }: Instruction
         ) : (
           <>
             <span className={styles.distance}>{distance}</span>
-            <span className={styles.instruction}>{instruction}</span>
+            <span className={styles.instruction} aria-hidden="true">
+              {instruction}
+            </span>
           </>
         )}
       </div>
+      <span className="pr-visually-hidden" role="status">
+        {loading ? '' : instruction}
+      </span>
     </div>
   );
 }

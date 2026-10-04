@@ -72,7 +72,6 @@ export function AppShell() {
 
   return (
     <>
-      <MapHost />
       <IonRouterOutlet className="pr-outlet" animation={fadeTransition} swipeGesture={false}>
         <Route path={routePatterns.home} element={<HomePage />} />
         <Route
@@ -86,6 +85,7 @@ export function AppShell() {
         <Route path={routePatterns.place} element={<PlacePage />} />
         <Route path="*" element={<Navigate to={routePatterns.home} replace />} />
       </IonRouterOutlet>
+      <MapHost />
     </>
   );
 }

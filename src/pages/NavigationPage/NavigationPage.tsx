@@ -15,6 +15,7 @@ import { useAddress, useReport } from '@/features/reports/hooks';
 import { useT } from '@/shared/i18n';
 import { formatArrival, formatDistance, formatDuration } from '@/shared/lib/format';
 import { tapFeedback } from '@/shared/lib/haptics';
+import { prefersReducedMotion } from '@/shared/lib/motion';
 import { paths } from '@/shared/navigation/paths';
 import { ActionBadge, InfoBanner, MapScreen } from '@/shared/ui';
 
@@ -73,7 +74,7 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
     const { prepared } = guidance;
     const to = guidance.snapped.along;
     const from = state.along;
-    if (from === null || Math.abs(to - from) > GLIDE_MAX_JUMP_M) {
+    if (from === null || Math.abs(to - from) > GLIDE_MAX_JUMP_M || prefersReducedMotion()) {
       state.along = to;
       setGuidance({ position: guidance.snapped.point, bearing: guidance.snapped.bearing }, guidance.remainingGeometry);
       return;
@@ -141,6 +142,8 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
 
   return (
     <MapScreen
+      title={t.titles.navigation}
+      heading={goalName ? `${t.titles.navigation}: ${goalName}` : t.titles.navigation}
       top={
         <>
           <InstructionCard

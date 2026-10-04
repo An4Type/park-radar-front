@@ -12,6 +12,7 @@ import { useMapCamera } from '@/features/map/hooks/useMapCamera';
 import { useTripStore } from '@/features/navigation/tripStore';
 import { useVisibleParking } from '@/features/parking/hooks';
 import { estimateDriveSeconds, recommendParking } from '@/features/parking/lib/recommend';
+import { ParkingListSheet } from '@/features/parking/components/ParkingListSheet';
 import { ReportSheet } from '@/features/reports/components/ReportSheet';
 import { useT } from '@/shared/i18n';
 import { formatDuration } from '@/shared/lib/format';
@@ -20,7 +21,7 @@ import { paths } from '@/shared/navigation/paths';
 import { ActionBadge, IconButton, InfoBanner, MapScreen, SearchTrigger } from '@/shared/ui';
 import styles from './HomePage.module.css';
 
-type Sheet = 'layers' | 'filters' | 'report' | 'location-help' | null;
+type Sheet = 'list' | 'layers' | 'filters' | 'report' | 'location-help' | null;
 
 const THANKS_MS = 4_000;
 
@@ -125,6 +126,9 @@ export default function HomePage() {
 
   return (
     <MapScreen
+      title={t.titles.home}
+      heading={t.titles.home}
+      inert={Boolean(sheet)}
       top={
         <div className={sheet ? styles.hidden : styles.top}>
           <div className={styles.searchRow}>
@@ -141,6 +145,13 @@ export default function HomePage() {
       }
       side={
         <>
+          <IconButton
+            icon="list"
+            label={t.home.list}
+            variant={sheet === 'list' ? 'active' : 'float'}
+            pressed={sheet === 'list'}
+            onClick={() => setSheet('list')}
+          />
           <IconButton
             icon="layers"
             label={t.home.mapLayers}
@@ -182,6 +193,7 @@ export default function HomePage() {
         </div>
       }
     >
+      {sheet === 'list' && <ParkingListSheet position={position} onClose={() => setSheet(null)} />}
       {sheet === 'layers' && <LayersSheet onClose={() => setSheet(null)} />}
       {sheet === 'filters' && <FiltersSheet onClose={() => setSheet(null)} />}
       {sheet === 'location-help' && <LocationHelpSheet onRetry={askForLocation} onClose={() => setSheet(null)} />}

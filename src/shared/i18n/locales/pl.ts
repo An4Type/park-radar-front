@@ -53,6 +53,7 @@ export const pl: Messages = {
     noMatch: (query) => `Brak miejsc pasujących do „${query}”.`,
     places: 'Miejsca',
     noParking: 'Brak parkingu',
+    results: (n) => `${n} ${plural(n, 'wynik', 'wyniki', 'wyników')}`,
   },
   home: {
     askingLocation: 'Proszę o dostęp do lokalizacji…',
@@ -77,6 +78,15 @@ export const pl: Messages = {
     filtersActive: 'Filtry, niektóre aktywne',
     centerOnMe: 'Pokaż moją lokalizację',
     reportHere: 'Zgłoś wolne miejsca w tym miejscu',
+    list: 'Lista parkingów w pobliżu',
+  },
+  list: {
+    title: 'W pobliżu',
+    close: 'Zamknij listę',
+    parkings: 'Parkingi',
+    reports: 'Zgłoszenia kierowców',
+    empty: 'Brak parkingów w pobliżu. Spróbuj wyszukać miejsce.',
+    filtered: 'Żaden parking w pobliżu nie pasuje do filtrów.',
   },
   layers: {
     title: 'Warstwy mapy',
@@ -245,7 +255,13 @@ export const pl: Messages = {
       },
     },
   },
+  titles: {
+    home: 'Mapa parkingów',
+    search: 'Szukaj',
+    navigation: 'Nawigacja',
+  },
   map: {
+    label: 'Mapa parkingów',
     yourPosition: 'Twoja pozycja',
     destination: (name) => `Cel: ${name}`,
   },

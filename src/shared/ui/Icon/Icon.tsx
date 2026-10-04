@@ -33,6 +33,7 @@ const ICONS = {
     </>
   ),
   filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+  list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
   accessible: (
     <>
       <circle cx="11" cy="4.5" r="1.6" />

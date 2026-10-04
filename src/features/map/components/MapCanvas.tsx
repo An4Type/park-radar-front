@@ -2,7 +2,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import '../lib/maplibreWorker';
 import { useIonRouter } from '@ionic/react';
 import type { FeatureCollection } from 'geojson';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Map, { Layer, Source, type LayerProps, type MapLayerMouseEvent } from 'react-map-gl/maplibre';
 import { useLocation } from 'react-router-dom';
 import type { ParkingPoint } from '@/api/types';
@@ -37,6 +37,7 @@ import {
 } from '../lib/layers';
 import { useMapStore } from '../mapStore';
 import { HexStates } from './HexStates';
+import { trackAttributionHeight } from '../lib/attributionInset';
 import { MapImages } from './MapImages';
 import { DestinationMarker, UserMarker } from './MapMarkers';
 
@@ -57,7 +58,8 @@ export function MapCanvas() {
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
   const labels = useMapStore((s) => s.labels);
-  const closedLabel = useT().common.closed;
+  const t = useT();
+  const closedLabel = t.common.closed;
 
   const { byId, geometry, visiblePoints, visibleGeometry } = useVisibleParking();
   const { reports, byId: reportsById } = useReports();
@@ -71,6 +73,8 @@ export function MapCanvas() {
   const [hovering, setHovering] = useState(false);
   const [imagesReady, setImagesReady] = useState(false);
   const onImagesReady = useCallback(() => setImagesReady(true), []);
+  const untrackAttribution = useRef<() => void>(undefined);
+  useEffect(() => () => untrackAttribution.current?.(), []);
 
   const hexFeatures = useMemo(() => hexesToFeatures(visibleGeometry.hexes), [visibleGeometry]);
   const outlineFeature = useMemo(() => outlineToFeature(visibleGeometry.outline), [visibleGeometry]);
@@ -143,7 +147,7 @@ export function MapCanvas() {
   );
 
   return (
-    <div className="pr-map-host">
+    <div className="pr-map-host" role="region" aria-label={t.map.label}>
       {style && (
         <Map
           id={MAP_ID}
@@ -156,6 +160,10 @@ export function MapCanvas() {
           onMouseLeave={() => setHovering(false)}
           cursor={hovering ? 'pointer' : 'grab'}
           attributionControl={{ compact: true }}
+          onLoad={(event) => {
+            untrackAttribution.current?.();
+            untrackAttribution.current = trackAttributionHeight(event.target.getContainer());
+          }}
           dragRotate={false}
           pitchWithRotate={false}
           touchPitch={false}

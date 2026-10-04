@@ -31,7 +31,7 @@ export function LayersSheet({ onClose }: { onClose: () => void }) {
       className={styles.root}
     >
       <button type="button" tabIndex={-1} aria-label={t.layers.close} className={styles.scrim} onClick={onClose} />
-      <BottomSheet label={t.layers.title} onDismiss={onClose}>
+      <BottomSheet label={t.layers.title} onDismiss={onClose} modal>
         <header className={styles.header}>
           <h2 className={styles.title}>{t.layers.title}</h2>
           <IconButton icon="close" label={t.layers.close} variant="flat" onClick={onClose} />

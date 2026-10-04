@@ -33,6 +33,10 @@
   align-items: stretch;
 }
 
+.bottom {
+  margin-bottom: calc(var(--pr-attribution-height, 16px) + 4px);
+}
+
 .side {
   align-self: flex-end;
   display: flex;
@@ -46,5 +50,23 @@
     width: 100%;
     max-width: 440px;
     align-self: center;
+  }
+}
+
+@media (max-height: 480px) {
+  .frame {
+    overflow-y: auto;
+    pointer-events: auto;
+    gap: var(--pr-space-3);
+  }
+
+  .frame > .spacer {
+    flex: 1 0 0;
+  }
+
+  .side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 }

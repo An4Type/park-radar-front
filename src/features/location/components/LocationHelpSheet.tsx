@@ -14,7 +14,7 @@ export function LocationHelpSheet({ onRetry, onClose }: { onRetry: () => void; o
   return (
     <div className={styles.root}>
       <button type="button" tabIndex={-1} aria-label={t.common.close} className={styles.scrim} onClick={onClose} />
-      <BottomSheet label={title} onDismiss={onClose}>
+      <BottomSheet label={title} onDismiss={onClose} modal>
         <header className={styles.header}>
           <div className={styles.heading}>
             <h2 className={styles.title}>{title}</h2>

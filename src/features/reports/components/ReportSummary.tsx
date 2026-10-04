@@ -18,7 +18,7 @@ export function ReportSummary({ report, now = new Date() }: { report: ParkingRep
         <Icon name="report" size={14} />
         {t.report.byDrivers}
       </span>
-      <h1 className={styles.address}>
+      <h1 className={styles.address} tabIndex={-1}>
         {address.isPending ? <Skeleton width="70%" height={24} /> : address.data || t.common.reportedSpot}
       </h1>
       <p className={styles.line} aria-live="polite">

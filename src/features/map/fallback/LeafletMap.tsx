@@ -21,6 +21,7 @@ import { useCameraStore } from '../cameraStore';
 import { OVERLAY_PADDING, OVERVIEW_ZOOM } from '../hooks/useMapCamera';
 import { heatWeight } from '../lib/geojson';
 import { AUTO_HEAT_UNTIL, AUTO_HEXES_FROM, HEAT_RADIUS_M } from '../lib/layers';
+import { trackAttributionHeight } from '../lib/attributionInset';
 import { MAP_COLORS } from '../lib/mapTheme';
 import { useMapStore } from '../mapStore';
 import styles from './LeafletMap.module.css';
@@ -75,7 +76,8 @@ export default function LeafletMap() {
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
   const labels = useMapStore((s) => s.labels);
-  const closedLabel = useT().common.closed;
+  const t = useT();
+  const closedLabel = t.common.closed;
   const setFallback = useCameraStore((s) => s.setFallback);
   const { byId, geometry, visiblePoints: points, visibleGeometry } = useVisibleParking();
   const { reports, byId: reportsById } = useReports();
@@ -122,8 +124,10 @@ export default function LeafletMap() {
     L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 20, maxNativeZoom: 19, className: styles.tiles }).addTo(instance);
     const onView = () => setView((v) => ({ zoom: fromLeaflet(instance.getZoom()), version: v.version + 1 }));
     instance.on('zoomend moveend', onView);
+    const untrack = trackAttributionHeight(el);
     setMap(instance);
     return () => {
+      untrack();
       instance.off('zoomend moveend', onView);
       instance.remove();
     };
@@ -337,7 +341,7 @@ export default function LeafletMap() {
   );
 
   return (
-    <div className="pr-map-host">
+    <div className="pr-map-host" role="region" aria-label={t.map.label}>
       <div ref={containerRef} className={styles.map} />
     </div>
   );

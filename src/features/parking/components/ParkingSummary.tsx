@@ -24,7 +24,7 @@ export function ParkingSummary({ point, detail }: ParkingSummaryProps) {
   return (
     <div className={styles.summary}>
       <div className={styles.heading}>
-        <h1 className={styles.name}>{point.name}</h1>
+        <h1 className={styles.name} tabIndex={-1}>{point.name}</h1>
         <p className={styles.line} aria-live="polite">
           <b className={level === 'full' ? styles.full : styles.free}>
             {!point.active ? t.common.closed : level === 'full' ? t.common.full : t.common.free(point.free)}

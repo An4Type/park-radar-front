@@ -35,7 +35,9 @@ export default function ReportPage() {
   }, [camera, report]);
 
   return (
-    <MapScreen top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
+    <MapScreen
+      title={t.report.pageLabel}
+      top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
       <BottomSheet label={t.report.pageLabel} onDismiss={goBack}>
         {report ? (
           <>
@@ -65,7 +67,9 @@ export default function ReportPage() {
           </div>
         ) : (
           <div className={styles.loading}>
-            <h1 className={styles.title}>{t.report.expired}</h1>
+            <h1 className={styles.title} tabIndex={-1}>
+              {t.report.expired}
+            </h1>
             <Button variant="secondary" block onClick={goBack}>
               {t.common.backToMap}
             </Button>

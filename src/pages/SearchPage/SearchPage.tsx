@@ -14,6 +14,7 @@ import { formatDistance } from '@/shared/lib/format';
 import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
+import { usePageTitle } from '@/shared/navigation/usePageFocus';
 import { useGoBack } from '@/shared/navigation/useGoBack';
 import { Button, Icon, IconButton, List, ListRow, SearchInput, Skeleton } from '@/shared/ui';
 import styles from './SearchPage.module.css';
@@ -46,6 +47,7 @@ export default function SearchPage({
   const router = useIonRouter();
   const goBack = useGoBack();
   const t = useT();
+  usePageTitle(t.titles.search);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const { position } = useUserPosition();
@@ -115,6 +117,10 @@ export default function SearchPage({
       </header>
 
       <main className={styles.body} aria-busy={search.isFetching || search.isTyping}>
+        <h1 className="pr-visually-hidden">{t.titles.search}</h1>
+        <p className="pr-visually-hidden" role="status">
+          {search.query && !search.isFetching && !search.isTyping ? t.search.results(results.length) : ''}
+        </p>
         {!search.query && results.length > 0 && <h2 className={styles.overline}>{t.search.suggestions}</h2>}
 
         {search.isPending && results.length === 0 ? (

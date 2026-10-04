@@ -21,12 +21,12 @@ export function useMapCamera(): MapCamera {
       ready: Boolean(map),
       flyTo(center: LatLng, zoom = OVERVIEW_ZOOM): boolean {
         if (!map) return false;
-        map.flyTo({ center: toLngLat(center), zoom, duration: DURATION_MS, essential: true });
+        map.flyTo({ center: toLngLat(center), zoom, duration: DURATION_MS });
         return true;
       },
       fitTo(points: LatLng[], padding: CameraPadding = OVERLAY_PADDING, maxZoom = 16.5): boolean {
         if (!map || points.length === 0) return false;
-        map.fitBounds(boundsOf(points), { padding, maxZoom, duration: DURATION_MS, essential: true });
+        map.fitBounds(boundsOf(points), { padding, maxZoom, duration: DURATION_MS });
         return true;
       },
       follow(center: LatLng, bearing?: number | null) {

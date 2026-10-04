@@ -22,6 +22,22 @@ a {
   outline-offset: 2px;
 }
 
+[tabindex='-1']:focus {
+  outline: none;
+}
+
+.pr-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .pr-map-host {
   position: fixed;
   inset: 0;
@@ -41,6 +57,11 @@ ion-router-outlet.pr-outlet > .ion-page.pr-overlay-page {
   pointer-events: none;
   background: transparent;
   box-shadow: none;
+}
+
+.maplibregl-ctrl-attrib-button {
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {

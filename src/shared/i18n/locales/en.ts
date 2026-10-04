@@ -48,6 +48,7 @@ export const en = {
     noMatch: (query: string) => `No places match “${query}”.`,
     places: 'Places',
     noParking: 'No parking',
+    results: (n: number) => (n === 1 ? '1 result' : `${n} results`),
   },
   home: {
     askingLocation: 'Asking for your location…',
@@ -72,6 +73,15 @@ export const en = {
     filtersActive: 'Filters, some active',
     centerOnMe: 'Center on my location',
     reportHere: 'Report free parking here',
+    list: 'List of nearby parkings',
+  },
+  list: {
+    title: 'Nearby',
+    close: 'Close list',
+    parkings: 'Parkings',
+    reports: 'Driver reports',
+    empty: 'No parking nearby. Try searching for a place.',
+    filtered: 'No parking nearby matches your filters.',
   },
   layers: {
     title: 'Map layers',
@@ -241,7 +251,13 @@ export const en = {
       },
     },
   },
+  titles: {
+    home: 'Parking map',
+    search: 'Search',
+    navigation: 'Navigation',
+  },
   map: {
+    label: 'Parking map',
     yourPosition: 'Your position',
     destination: (name: string) => `Destination: ${name}`,
   },

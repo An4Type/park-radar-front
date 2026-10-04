@@ -38,7 +38,7 @@ export function FiltersSheet({ onClose }: { onClose: () => void }) {
       className={styles.root}
     >
       <button type="button" tabIndex={-1} aria-label={t.filters.close} className={styles.scrim} onClick={onClose} />
-      <BottomSheet label={t.filters.title} onDismiss={onClose}>
+      <BottomSheet label={t.filters.title} onDismiss={onClose} modal>
         <header className={styles.header}>
           <h2 className={styles.title}>{t.filters.title}</h2>
           <div className={styles.headerActions}>

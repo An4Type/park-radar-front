@@ -38,7 +38,7 @@ export function ReportSheet({ location, onClose, onSent }: ReportSheetProps) {
       className={styles.root}
     >
       <button type="button" tabIndex={-1} aria-label={t.report.close} className={styles.scrim} onClick={onClose} />
-      <BottomSheet label={t.report.sheetLabel} onDismiss={onClose}>
+      <BottomSheet label={t.report.sheetLabel} onDismiss={onClose} modal>
         <header className={styles.header}>
           <div className={styles.heading}>
             <h2 className={styles.title}>{t.report.question}</h2>
@@ -77,7 +77,7 @@ export function ReportSheet({ location, onClose, onSent }: ReportSheetProps) {
           })}
         </div>
 
-        {submit.isError && <p className={styles.error}>{t.report.failed}</p>}
+        {submit.isError && <p className={styles.error} role="alert">{t.report.failed}</p>}
 
         <Button block disabled={!location || !level || submit.isPending} onClick={send}>
           {submit.isPending ? t.report.sending : t.report.send}

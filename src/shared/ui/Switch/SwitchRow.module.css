@@ -50,7 +50,7 @@
   height: 32px;
   flex: none;
   border-radius: 16px;
-  background: var(--pr-on-dark-muted);
+  background: var(--pr-control-off);
   transition: background-color var(--pr-duration-fast) var(--pr-ease);
 }
 

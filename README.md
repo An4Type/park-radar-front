@@ -63,6 +63,19 @@ Each route provider has a 5 s timeout. If both fail, the app draws a simple offl
 
 **What leaves the device.** The user's position goes to the routing servers (route start), to Photon (to rank search results), to Nominatim (only the coordinates of a spot being reported) and to the backend (when submitting a report). Nothing is sent to any analytics service.
 
+## Accessibility
+
+The app targets **WCAG 2.2 level AA** in English and Polish.
+
+- **Everything on the map is also in a list.** The list button on the home screen opens nearby parkings and driver reports, sorted by distance, with their availability. Each entry opens the same page as tapping it on the map. Keyboard and screen-reader users don't need the map.
+- **Keyboard.** Every control can be reached with Tab, in visual order. Sheets (list, layers, filters, report, location help) are modal dialogs: focus moves into them, Tab stays inside, and Escape closes them and returns focus to the button that opened them. On every screen change, focus moves to the new screen's heading.
+- **Screen readers.** Each screen has its own page title and `h1`. Status messages are announced: the report confirmation, rerouting, the number of search results and the next turn. The turn is announced only when it changes, not on every GPS fix. The page language follows the app language.
+- **Zoom and reflow.** Pinch-zoom is allowed. At 320 px wide or 256 px tall (400% zoom), nothing scrolls sideways, and the controls become scrollable instead of being cut off. Text wraps instead of truncating, so increased text spacing loses nothing. Both orientations are supported.
+- **Contrast.** Text is at least 4.5:1. Control states, such as the switch track and the selected segment, are at least 3:1.
+- **Motion.** With *reduce motion* turned on, CSS transitions, map camera moves and the navigation arrow glide are switched off.
+
+Check it with [axe DevTools](https://www.deque.com/axe/devtools/) and a real screen reader (VoiceOver, TalkBack) before each release. Automated tools catch only part of WCAG.
+
 ## Architecture
 
 ```

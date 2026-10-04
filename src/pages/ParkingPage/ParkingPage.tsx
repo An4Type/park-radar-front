@@ -50,7 +50,9 @@ export default function ParkingPage() {
     : '';
 
   return (
-    <MapScreen top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
+    <MapScreen
+      title={point?.name ?? t.common.parking}
+      top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
       <BottomSheet label={point?.name ?? t.common.parking} onDismiss={goBack}>
         {point ? (
           <>
@@ -74,7 +76,7 @@ export default function ParkingPage() {
           </>
         ) : !isPending ? (
           <div className={styles.message}>
-            <h1 className={styles.title}>{isError ? t.parking.loadFailed : t.parking.notListed}</h1>
+            <h1 className={styles.title} tabIndex={-1}>{isError ? t.parking.loadFailed : t.parking.notListed}</h1>
             {isError ? (
               <Button variant="secondary" block onClick={() => void refetch()}>
                 {t.common.tryAgain}

@@ -50,14 +50,18 @@ export default function PlacePage() {
   if (!destination) return <MapScreen />;
 
   return (
-    <MapScreen top={<IconButton icon="back" label={t.place.backToSearch} onClick={goBack} className={styles.back} />}>
+    <MapScreen
+      title={t.place.parkingNearName(destination.name)}
+      top={<IconButton icon="back" label={t.place.backToSearch} onClick={goBack} className={styles.back} />}>
       <BottomSheet label={t.place.parkingNearName(destination.name)} onDismiss={goBack}>
         <header className={styles.header}>
           <span className={styles.overline}>
             <Icon name="place" size={14} />
             {t.place.parkingNear}
           </span>
-          <h1 className={styles.title}>{destination.name}</h1>
+          <h1 className={styles.title} tabIndex={-1}>
+            {destination.name}
+          </h1>
           {destination.detail && <p className={styles.detail}>{destination.detail}</p>}
         </header>
 
