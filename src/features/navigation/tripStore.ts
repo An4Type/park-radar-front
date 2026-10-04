@@ -3,6 +3,7 @@ import type { LatLng } from '@/api/types';
 
 export interface TripDestination {
   name: string;
+  detail?: string;
   location: LatLng;
 }
 
