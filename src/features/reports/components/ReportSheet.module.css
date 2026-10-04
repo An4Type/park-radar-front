@@ -1,0 +1,126 @@
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--pr-scrim-light);
+  pointer-events: auto;
+  cursor: default;
+  animation: fade 200ms var(--pr-ease) backwards;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -4px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.address {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--pr-muted);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.option {
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 12px;
+  border: 1.5px solid var(--pr-border);
+  border-radius: var(--pr-radius-tile);
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--pr-duration-fast) var(--pr-ease),
+    background-color var(--pr-duration-fast) var(--pr-ease),
+    transform var(--pr-duration-fast) var(--pr-ease);
+}
+
+.option:active {
+  transform: scale(0.97);
+}
+
+.selected {
+  border-color: var(--pr-primary);
+  background: var(--pr-blue-50);
+  box-shadow: 0 0 0 1px var(--pr-primary) inset;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  margin-bottom: auto;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.none {
+  background: var(--pr-danger);
+}
+
+.few {
+  background: var(--pr-surface);
+  border: 3px solid var(--pr-heat-few-stroke);
+}
+
+.many {
+  background: var(--pr-primary);
+}
+
+.optionLabel {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.optionHint {
+  font-size: 12px;
+  color: var(--pr-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--pr-danger);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
