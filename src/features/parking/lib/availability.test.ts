@@ -16,7 +16,7 @@ describe('availabilityLevel', () => {
 
 const origin = { lat: 50, lng: 20 };
 const parking = (id: string, free: number, capacity: number, lat: number): ParkingPoint => ({
-  id, name: id, address: '', lat, lng: 20, capacity, free, active: true, confidence: 1,
+  id, name: id, address: '', lat, lng: 20, capacity, free, accessibleSpaces: 0, freeAccessible: null, evChargingSpaces: 0, freeEv: null, paid: null, kind: null, active: true, confidence: 1,
   updatedAt: new Date().toISOString(),
 });
 

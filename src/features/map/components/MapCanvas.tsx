@@ -3,84 +3,141 @@ import '../lib/maplibreWorker';
 import { useIonRouter } from '@ionic/react';
 import type { FeatureCollection } from 'geojson';
 import { useCallback, useMemo, useState } from 'react';
-import Map, { Layer, Source, type MapLayerMouseEvent } from 'react-map-gl/maplibre';
+import Map, { Layer, Source, type LayerProps, type MapLayerMouseEvent } from 'react-map-gl/maplibre';
 import { useLocation } from 'react-router-dom';
+import type { ParkingPoint } from '@/api/types';
 import { useUserPosition } from '@/features/location/hooks';
 import { useLocationStore } from '@/features/location/locationStore';
 import { useActiveRoute } from '@/features/navigation/hooks';
-import { useParking } from '@/features/parking/hooks';
-import { cellOf, pickInCell } from '@/features/parking/lib/cellIndex';
-import { recommendParking } from '@/features/parking/lib/recommend';
+import { useNavigationStore } from '@/features/navigation/navigationStore';
+import { useTripStore } from '@/features/navigation/tripStore';
+import { useVisibleParking } from '@/features/parking/hooks';
+import { useReports } from '@/features/reports/hooks';
+import { nearestOf } from '@/features/parking/lib/hexIndex';
 import { paths, screenFor } from '@/shared/navigation/paths';
 import { useMapStyle } from '../hooks/useMapStyle';
 import { MAP_ID, OVERVIEW_ZOOM } from '../hooks/useMapCamera';
-import { cellsToFeatures, clustersToFeatures, pointsToHeat, routeToLine } from '../lib/geojson';
+import { hexesToFeatures, lineOf, outlineToFeature, pointsToFeatures, reportsToFeatures, reportsToPoints } from '../lib/geojson';
 import {
-  CELL_FILL_LAYER_ID,
-  cellFill,
-  clusterOutline,
+  DOT_LAYER_ID,
+  HEX_FILL_LAYER_ID,
+  PARKING_LABEL_LAYER_ID,
+  parkingLabels,
+  parkingLayers,
+  REPORT_FILL_LAYER_ID,
+  REPORT_LABEL_LAYER_ID,
+  reportFill,
+  reportLabels,
+  reportOutline,
   routeCasing,
   routeLine,
   selectedOutline,
-  softHeat,
-  visibility,
+  withVisibility,
 } from '../lib/layers';
 import { useMapStore } from '../mapStore';
-import { CellStates } from './CellStates';
-import { CountBadge, UserMarker } from './MapMarkers';
+import { HexStates } from './HexStates';
+import { MapImages } from './MapImages';
+import { DestinationMarker, UserMarker } from './MapMarkers';
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
-const CELLS_SOURCE = 'cells';
+const HEXES_SOURCE = 'parking-hexes';
+const POINTS_SOURCE = 'parking-points';
+
+const fromSource = (layer: LayerProps, source: string) => ({ ...layer, source }) as LayerProps;
 
 export function MapCanvas() {
   const router = useIonRouter();
   const screen = screenFor(useLocation().pathname);
   const parkingId = screen.kind === 'parking' || screen.kind === 'navigate' ? screen.parkingId : undefined;
-  const navigating = screen.kind === 'navigate';
+  const navigating = screen.kind === 'navigate' || screen.kind === 'navigateReport';
 
   const style = useMapStyle();
   const { position } = useUserPosition();
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
+  const labels = useMapStore((s) => s.labels);
 
-  const parking = useParking();
-  const { points, byId, byCell, geometry } = parking;
+  const { byId, geometry, visiblePoints, visibleGeometry } = useVisibleParking();
+  const { reports, byId: reportsById } = useReports();
+  const navReport = screen.kind === 'navigateReport' ? reportsById.get(screen.reportId) : undefined;
   const selected = parkingId ? byId.get(parkingId) : undefined;
-  const { data: route } = useActiveRoute(navigating ? selected : undefined);
+  const { data: route } = useActiveRoute(navigating ? (selected ?? navReport) : undefined);
+  const guidanceMarker = useNavigationStore((s) => s.marker);
+  const remaining = useNavigationStore((s) => s.remaining);
+  const destination = useTripStore((s) => s.destination);
+  const showDestination = Boolean(destination) && (screen.kind === 'place' || screen.kind === 'parking' || navigating);
   const [hovering, setHovering] = useState(false);
+  const [imagesReady, setImagesReady] = useState(false);
+  const onImagesReady = useCallback(() => setImagesReady(true), []);
 
-  const cellFeatures = useMemo(() => cellsToFeatures(geometry.cells), [geometry]);
-  const clusterFeatures = useMemo(() => clustersToFeatures(geometry.clusters), [geometry]);
-  const heat = useMemo(() => pointsToHeat(points), [points]);
-  const selectedCell = selected ? cellOf(selected) : undefined;
+  const hexFeatures = useMemo(() => hexesToFeatures(visibleGeometry.hexes), [visibleGeometry]);
+  const outlineFeature = useMemo(() => outlineToFeature(visibleGeometry.outline), [visibleGeometry]);
+  const pointFeatures = useMemo(() => pointsToFeatures(visiblePoints), [visiblePoints]);
+  const reportHexes = useMemo(() => reportsToFeatures(reports), [reports]);
+  const reportPoints = useMemo(() => reportsToPoints(reports), [reports]);
   const selectedFeature = useMemo(
-    () => (selectedCell ? cellsToFeatures(geometry.cells.filter((c) => c.id === selectedCell)) : EMPTY),
-    [geometry, selectedCell],
+    () => (selected ? hexesToFeatures(geometry.hexes.filter((h) => h.id === selected.id)) : EMPTY),
+    [geometry, selected],
   );
-  const routeData = useMemo(() => (route ? routeToLine(route) : EMPTY), [route]);
-  const recommended = useMemo(() => recommendParking(points, position), [points, position]);
+  const routeData = useMemo(
+    () => (remaining && navigating ? lineOf(remaining) : route ? lineOf(route.geometry) : EMPTY),
+    [navigating, remaining, route],
+  );
 
-  const badgePoint = screen.kind === 'home' ? recommended : selected;
-  const showCells = layerMode === 'zones' && !navigating;
-  const showHeat = layerMode === 'heat' && !navigating;
+  const layers = useMemo(() => parkingLayers(layerMode, navigating), [layerMode, navigating]);
+  const { layer: labelLayer, visible: showLabels } = useMemo(
+    () =>
+      parkingLabels({
+        free: labels.free && !navigating,
+        accessible: labels.accessible && !navigating,
+        ev: labels.ev && !navigating,
+      }),
+    [labels.accessible, labels.ev, labels.free, navigating],
+  );
+
+  const interactiveLayerIds = [
+    ...(layers.showHexes ? [HEX_FILL_LAYER_ID, DOT_LAYER_ID] : []),
+    ...(showLabels && imagesReady ? [PARKING_LABEL_LAYER_ID] : []),
+    ...(navigating ? [] : [REPORT_FILL_LAYER_ID, ...(imagesReady ? [REPORT_LABEL_LAYER_ID] : [])]),
+  ];
+
+  const openReport = useCallback(
+    (id: string) => {
+      if (screen.kind === 'report' && screen.reportId === id) return;
+      router.push(paths.report(id), 'forward', screen.kind === 'report' || screen.kind === 'parking' ? 'replace' : 'push');
+    },
+    [router, screen],
+  );
 
   const openParking = useCallback(
     (id: string) => {
       if (screen.kind === 'parking' && screen.parkingId === id) return;
-      router.push(paths.parking(id), 'forward', screen.kind === 'parking' ? 'replace' : 'push');
+      router.push(paths.parking(id), 'forward', screen.kind === 'parking' || screen.kind === 'report' ? 'replace' : 'push');
     },
     [router, screen],
   );
 
   const onClick = useCallback(
     (event: MapLayerMouseEvent) => {
-      if (screen.kind !== 'home' && screen.kind !== 'parking') return;
-      const cell = event.features?.[0]?.properties?.id;
-      if (typeof cell !== 'string') return;
-      const point = pickInCell(parking, cell, { lat: event.lngLat.lat, lng: event.lngLat.lng });
+      if (screen.kind !== 'home' && screen.kind !== 'parking' && screen.kind !== 'report') return;
+      const features = event.features ?? [];
+      const top = features[0];
+      if (!top) return;
+      if (top.layer.id === REPORT_FILL_LAYER_ID || top.layer.id === REPORT_LABEL_LAYER_ID) {
+        openReport(String(top.properties?.id));
+        return;
+      }
+      if (top.layer.id !== HEX_FILL_LAYER_ID && typeof top.properties?.id === 'string') {
+        openParking(top.properties.id);
+        return;
+      }
+      const candidates = features
+        .map((f) => byId.get(String(f.properties?.id)))
+        .filter((p): p is ParkingPoint => Boolean(p));
+      const point = nearestOf(candidates, { lat: event.lngLat.lat, lng: event.lngLat.lng });
       if (point) openParking(point.id);
     },
-    [openParking, parking, screen.kind],
+    [byId, openParking, openReport, screen.kind],
   );
 
   return (
@@ -91,7 +148,7 @@ export function MapCanvas() {
           initialViewState={{ longitude: position.lng, latitude: position.lat, zoom: OVERVIEW_ZOOM }}
           mapStyle={style}
           style={{ position: 'absolute', inset: 0 }}
-          interactiveLayerIds={showCells ? [CELL_FILL_LAYER_ID] : []}
+          interactiveLayerIds={interactiveLayerIds}
           onClick={onClick}
           onMouseEnter={() => setHovering(true)}
           onMouseLeave={() => setHovering(false)}
@@ -105,33 +162,40 @@ export function MapCanvas() {
           maxZoom={19}
           reuseMaps
         >
-          <Source id={CELLS_SOURCE} type="geojson" data={cellFeatures} promoteId="id">
-            <Layer {...cellFill} layout={{ visibility: visibility(showCells) }} />
+          <Source id={POINTS_SOURCE} type="geojson" data={pointFeatures}>
+            <Layer {...layers.heat} />
           </Source>
-          <CellStates sourceId={CELLS_SOURCE} byCell={byCell} />
-          <Source id="clusters" type="geojson" data={clusterFeatures}>
-            <Layer {...clusterOutline} layout={{ ...clusterOutline.layout, visibility: visibility(showCells) }} />
+          <Source id={HEXES_SOURCE} type="geojson" data={hexFeatures} promoteId="id">
+            <Layer {...layers.hexFill} />
           </Source>
-          <Source id="parking-heat" type="geojson" data={heat}>
-            <Layer {...softHeat} layout={{ visibility: visibility(showHeat) }} />
+          <HexStates sourceId={HEXES_SOURCE} points={visiblePoints} />
+          <Source id="parking-outline" type="geojson" data={outlineFeature}>
+            <Layer {...layers.outline} />
           </Source>
-          <Source id="selected-cell" type="geojson" data={selectedFeature}>
+          <Source id="selected-hex" type="geojson" data={selectedFeature}>
             <Layer {...selectedOutline} />
           </Source>
           <Source id="route" type="geojson" data={routeData}>
             <Layer {...routeCasing} />
             <Layer {...routeLine} />
           </Source>
+          <Source id="reports" type="geojson" data={reportHexes}>
+            <Layer {...withVisibility(reportFill, !navigating)} />
+            <Layer {...withVisibility(reportOutline, !navigating)} />
+          </Source>
+          <Layer {...fromSource(layers.dots, POINTS_SOURCE)} />
+          <MapImages onReady={onImagesReady} />
+          {imagesReady && <Layer {...fromSource(labelLayer, POINTS_SOURCE)} />}
+          <Source id="report-points" type="geojson" data={reportPoints}>
+            {imagesReady && <Layer {...withVisibility(reportLabels, !navigating)} />}
+          </Source>
 
-          {badgePoint && !navigating && (
-            <CountBadge
-              key={badgePoint.id}
-              position={badgePoint}
-              free={badgePoint.free}
-              onClick={() => openParking(badgePoint.id)}
-            />
-          )}
-          <UserMarker position={position} heading={heading} navigating={navigating} />
+          {showDestination && destination && <DestinationMarker position={destination.location} name={destination.name} />}
+          <UserMarker
+            position={navigating && guidanceMarker ? guidanceMarker.position : position}
+            heading={navigating && guidanceMarker ? guidanceMarker.bearing : heading}
+            navigating={navigating}
+          />
         </Map>
       )}
     </div>

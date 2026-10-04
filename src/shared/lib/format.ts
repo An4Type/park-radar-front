@@ -1,3 +1,5 @@
+export const APP_LOCALE = 'en-GB';
+
 export function formatDistance(meters: number): string {
   if (meters < 950) return `${Math.max(10, Math.round(meters / 10) * 10)} m`;
   return `${(meters / 1000).toFixed(1)} km`;
@@ -11,7 +13,7 @@ export function formatDuration(seconds: number): string {
 }
 
 export function formatArrival(seconds: number, now: Date = new Date()): string {
-  return new Date(now.getTime() + seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(now.getTime() + seconds * 1000).toLocaleTimeString(APP_LOCALE, { hour: '2-digit', minute: '2-digit' });
 }
 
 export function formatUpdatedAgo(iso: string, now: Date = new Date()): string {

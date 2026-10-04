@@ -1,8 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
-import { parkingApi, queryKeys, type LatLng, type ParkingPoint, type Route } from '@/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { parkingApi, queryKeys, type LatLng, type Route } from '@/api';
 import { useFrozenPosition } from '@/features/location/hooks';
-import { distanceMeters, roundLatLng } from '@/shared/lib/geo';
+import { roundLatLng } from '@/shared/lib/geo';
+import {
+  OFF_ROUTE_M,
+  prepareRoute,
+  progressAt,
+  remainingLine,
+  snapToRoute,
+  type PreparedRoute,
+  type RouteProgress,
+  type RouteSnap,
+} from './lib/routeMatcher';
 import { useTripStore } from './tripStore';
 
 const NOWHERE: LatLng = { lat: 0, lng: 0 };
@@ -17,7 +27,7 @@ export function useRoute(to: LatLng | undefined, from: LatLng) {
   });
 }
 
-export function useActiveRoute(point: ParkingPoint | undefined) {
+export function useActiveRoute(point: LatLng | undefined) {
   const routeOrigin = useTripStore((s) => s.routeOrigin);
   const frozen = useFrozenPosition();
   const origin = routeOrigin ?? frozen;
@@ -25,45 +35,34 @@ export function useActiveRoute(point: ParkingPoint | undefined) {
   return { ...useRoute(to, origin), origin };
 }
 
-const STEP_REACHED_M = 25;
-const ARRIVED_M = 35;
-
-export interface NavigationProgress {
-  stepIndex: number;
-  distanceToStepMeters: number;
-  remainingMeters: number;
-  remainingSeconds: number;
-  arrived: boolean;
+export interface RouteGuidance extends RouteProgress {
+  prepared: PreparedRoute;
+  snapped: RouteSnap;
+  onRoute: boolean;
+  remainingGeometry: LatLng[];
 }
 
-export function useNavigationProgress(route: Route | undefined, position: LatLng): NavigationProgress | null {
-  const [stepIndex, setStepIndex] = useState(0);
-
-  useEffect(() => setStepIndex(0), [route]);
+export function useRouteGuidance(route: Route | undefined, position: LatLng): RouteGuidance | null {
+  const prepared = useMemo(() => (route ? prepareRoute(route) : null), [route]);
+  const [guidance, setGuidance] = useState<RouteGuidance | null>(null);
+  const hint = useRef<number | undefined>(undefined);
+  const minStep = useRef(0);
 
   useEffect(() => {
-    if (!route) return;
-    const step = route.steps[stepIndex];
-    const isLast = stepIndex === route.steps.length - 1;
-    if (!isLast && step && distanceMeters(position, step.location) < STEP_REACHED_M) {
-      setStepIndex(stepIndex + 1);
-    }
-  }, [route, position, stepIndex]);
+    hint.current = undefined;
+    minStep.current = 0;
+    setGuidance(null);
+  }, [prepared]);
 
-  return useMemo(() => {
-    if (!route) return null;
-    const index = Math.min(stepIndex, route.steps.length - 1);
-    const step = route.steps[index];
-    const distanceToStep = distanceMeters(position, step.location);
-    const after = route.steps.slice(index + 1).reduce((sum, s) => sum + s.distanceMeters, 0);
-    const remaining = distanceToStep + after;
-    const ratio = route.distanceMeters > 0 ? Math.min(1, remaining / route.distanceMeters) : 0;
-    return {
-      stepIndex: index,
-      distanceToStepMeters: distanceToStep,
-      remainingMeters: remaining,
-      remainingSeconds: route.durationSeconds * ratio,
-      arrived: index === route.steps.length - 1 && distanceToStep < ARRIVED_M,
-    };
-  }, [route, stepIndex, position]);
+  useEffect(() => {
+    if (!prepared) return;
+    const snapped = snapToRoute(prepared, position, hint.current);
+    const onRoute = snapped.offsetMeters <= OFF_ROUTE_M;
+    if (onRoute) hint.current = snapped.segment;
+    const progress = progressAt(prepared, snapped.along, minStep.current);
+    if (onRoute) minStep.current = progress.stepIndex;
+    setGuidance({ ...progress, prepared, snapped, onRoute, remainingGeometry: remainingLine(prepared, snapped) });
+  }, [prepared, position]);
+
+  return guidance;
 }

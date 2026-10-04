@@ -1,50 +1,86 @@
-import { cellToBoundary } from 'h3-js';
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polygon } from 'geojson';
-import type { LatLng, ParkingPoint, Route } from '@/api/types';
-import type { CellShape, ClusterOutline } from '@/features/parking/model';
+import type { LatLng, ParkingPoint, ParkingReport } from '@/api/types';
+import { availableAccessible, availableEv } from '@/features/parking/lib/availability';
+import { hexAround } from '@/features/parking/lib/hexIndex';
+import type { HexShape, MultiPolygonCoords } from '@/features/parking/model';
 import { toLngLat } from '@/shared/lib/geo';
 
-export function cellsToFeatures(cells: CellShape[]): FeatureCollection<Polygon, { id: string }> {
+export function hexesToFeatures(hexes: HexShape[]): FeatureCollection<Polygon, { id: string }> {
   return {
     type: 'FeatureCollection',
-    features: cells.map((cell) => ({
+    features: hexes.map((hex) => ({
       type: 'Feature',
-      geometry: { type: 'Polygon', coordinates: [cell.ring] },
-      properties: { id: cell.id },
+      geometry: { type: 'Polygon', coordinates: [hex.ring] },
+      properties: { id: hex.id },
     })),
   };
 }
 
-export function clustersToFeatures(clusters: ClusterOutline[]): FeatureCollection<MultiPolygon, { id: string }> {
+export function outlineToFeature(outline: MultiPolygonCoords): FeatureCollection<MultiPolygon> {
   return {
     type: 'FeatureCollection',
-    features: clusters.map((cluster) => ({
-      type: 'Feature',
-      geometry: { type: 'MultiPolygon', coordinates: cluster.polygon },
-      properties: { id: cluster.id },
-    })),
+    features: outline.length ? [{ type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: outline }, properties: {} }] : [],
   };
 }
 
-export function pointsToHeat(points: ParkingPoint[]): FeatureCollection<Point, { weight: number }> {
+export function heatWeight(point: Pick<ParkingPoint, 'free' | 'active'>): number {
+  if (!point.active || point.free <= 0) return 0;
+  return Math.min(1, Math.log10(1 + point.free) / 2);
+}
+
+export interface PointProps {
+  id: string;
+  free: number;
+  active: boolean;
+  accessible: number;
+  ev: number;
+  weight: number;
+}
+
+export function pointsToFeatures(points: ParkingPoint[]): FeatureCollection<Point, PointProps> {
   return {
     type: 'FeatureCollection',
     features: points.map((point) => ({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [point.lng, point.lat] },
       properties: {
-        weight: point.capacity > 0 ? (point.free / point.capacity) * Math.min(1, Math.log10(1 + point.capacity) / 2.5) : 0,
+        id: point.id,
+        free: point.free,
+        active: point.active,
+        accessible: availableAccessible(point),
+        ev: availableEv(point),
+        weight: heatWeight(point),
       },
     })),
   };
 }
 
-export function routeToLine(route: Route): Feature<LineString> {
+export function lineOf(points: LatLng[]): Feature<LineString> {
   return {
     type: 'Feature',
     properties: {},
-    geometry: { type: 'LineString', coordinates: route.geometry.map(toLngLat) },
+    geometry: { type: 'LineString', coordinates: points.map(toLngLat) },
   };
 }
 
-export const cellPoints = (cell: string): LatLng[] => cellToBoundary(cell).map(([lat, lng]) => ({ lat, lng }));
+export function reportsToFeatures(reports: ParkingReport[]): FeatureCollection<Polygon, { id: string; level: string }> {
+  return {
+    type: 'FeatureCollection',
+    features: reports.map((report) => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [hexAround(report)] },
+      properties: { id: report.id, level: report.level },
+    })),
+  };
+}
+
+export function reportsToPoints(reports: ParkingReport[]): FeatureCollection<Point, { id: string; level: string }> {
+  return {
+    type: 'FeatureCollection',
+    features: reports.map((report) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [report.lng, report.lat] },
+      properties: { id: report.id, level: report.level },
+    })),
+  };
+}

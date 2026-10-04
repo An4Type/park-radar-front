@@ -13,20 +13,12 @@ export const STREETS = [
   "Elm Grove",
 ] as const;
 
-export const ZONE_SUFFIXES = [
-  "North",
-  "South",
-  "East",
-  "West",
-  "Central",
-] as const;
+export type MockDestination =
+  | { id: string; name: string; east: number; north: number }
+  | { id: string; name: string; location: { lat: number; lng: number } };
 
-export const DESTINATIONS: ReadonlyArray<{
-  id: string;
-  name: string;
-  east: number;
-  north: number;
-}> = [
+export const DESTINATIONS: ReadonlyArray<MockDestination> = [
+  { id: "tauron-arena", name: "Tauron Arena Kraków", location: { lat: 50.0677, lng: 19.9916 } },
   { id: "old-town-hall", name: "Old Town Hall1", east: 650, north: 900 },
   { id: "old-town-museum", name: "Old Town Museum", east: 1100, north: 1050 },
   { id: "old-town-market", name: "Old Town Market", east: 1500, north: 1250 },

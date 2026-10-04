@@ -27,6 +27,7 @@ export function BottomSheet({ children, onDismiss, label }: BottomSheetProps) {
       gestureName: 'pr-bottom-sheet',
       direction: 'y',
       threshold: 8,
+      canStart: ({ deltaY }) => el.scrollTop <= 0 && (deltaY > 0 || el.scrollHeight <= el.clientHeight),
       onStart: () => {
         el.style.transition = 'none';
       },

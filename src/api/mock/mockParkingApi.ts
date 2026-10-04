@@ -2,15 +2,24 @@ import { distanceMeters, roundLatLng } from '@/shared/lib/geo';
 import { ApiError } from '../errors';
 import { toParkingSnapshot } from '../mappers';
 import { ParkingResponseSchema } from '../schemas';
-import type { Destination, LatLng, ParkingApi } from '../types';
+import type { Destination, LatLng, ParkingApi, Route } from '../types';
 import { DESTINATIONS } from './fixtures';
 import { parkingDtos } from './pointGenerator';
+import { createReportStore } from './reportStore';
+import { osrmRoute } from './routing/osrmRoute';
+import { valhallaRoute } from './routing/valhallaRoute';
+import { withTimeout } from './routing/withTimeout';
 import { routeBetween } from './routeGenerator';
 
 export interface MockOptions {
   latency?: [number, number];
   now?: () => number;
+  routers?: ReadonlyArray<Router>;
+  routerTimeoutMs?: number;
+  seedReports?: boolean;
 }
+
+type Router = (from: LatLng, to: LatLng, signal?: AbortSignal) => Promise<Route>;
 
 function delay([min, max]: [number, number], signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -38,7 +47,15 @@ function offset(origin: LatLng, east: number, north: number): LatLng {
 
 const SUGGESTION_COUNT = 6;
 
-export function createMockParkingApi({ latency = [120, 380], now = Date.now }: MockOptions = {}): ParkingApi {
+export function createMockParkingApi({
+  latency = [120, 380],
+  now = Date.now,
+  routers = [valhallaRoute, osrmRoute],
+  routerTimeoutMs = 5_000,
+  seedReports = true,
+}: MockOptions = {}): ParkingApi {
+  const reports = createReportStore({ seed: seedReports });
+
   return {
     async getSnapshot({ near }, signal) {
       await delay(latency, signal);
@@ -52,15 +69,36 @@ export function createMockParkingApi({ latency = [120, 380], now = Date.now }: M
       const needle = query.trim().toLowerCase();
 
       const results: Destination[] = DESTINATIONS.filter((d) => !needle || d.name.toLowerCase().includes(needle))
-        .map((d) => ({ id: d.id, name: d.name, location: offset(anchor, d.east, d.north) }))
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          location: 'location' in d ? d.location : offset(anchor, d.east, d.north),
+        }))
         .sort((a, b) => distanceMeters(near, a.location) - distanceMeters(near, b.location));
 
       return needle ? results : results.slice(0, SUGGESTION_COUNT);
     },
 
     async getRoute({ from, to }, signal) {
-      await delay(latency, signal);
+      if (routers.length === 0) await delay(latency, signal);
+      for (const router of routers) {
+        try {
+          return await withTimeout((s) => router(from, to, s), routerTimeoutMs, signal);
+        } catch (error) {
+          if (signal?.aborted) throw new ApiError('aborted', 'Request was cancelled', { cause: error });
+        }
+      }
       return routeBetween(from, to);
+    },
+
+    async getReports({ near }, signal) {
+      await delay(latency, signal);
+      return reports.list(near, now());
+    },
+
+    async submitReport(input) {
+      await delay(latency);
+      return reports.add(input, now());
     },
   };
 }

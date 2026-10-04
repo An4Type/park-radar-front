@@ -14,7 +14,7 @@ import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
 import { useGoBack } from '@/shared/navigation/useGoBack';
-import { Button, IconButton, List, ListRow, SearchInput, Skeleton } from '@/shared/ui';
+import { Button, Icon, IconButton, List, ListRow, SearchInput, Skeleton } from '@/shared/ui';
 import styles from './SearchPage.module.css';
 
 const MAX_PARKING_MATCHES = 4;
@@ -22,6 +22,7 @@ const MAX_PARKING_MATCHES = 4;
 interface Result {
   key: string;
   name: string;
+  detail?: string;
   location: LatLng;
   parking: ParkingPoint | undefined;
   isParking: boolean;
@@ -51,6 +52,7 @@ export default function SearchPage() {
     const places: Result[] = (search.data ?? []).map((d) => ({
       key: d.id,
       name: d.name,
+      detail: d.detail,
       location: d.location,
       parking: parkingForDestination(points, d.location),
       isParking: false,
@@ -59,10 +61,14 @@ export default function SearchPage() {
   }, [points, position, search.data, search.query]);
 
   const open = (result: Result) => {
-    if (!result.parking) return;
     tapFeedback();
-    setDestination(result.isParking ? null : { name: result.name, location: result.location });
-    router.push(paths.parking(result.parking.id));
+    if (result.isParking && result.parking) {
+      setDestination(null);
+      router.push(paths.parking(result.parking.id));
+      return;
+    }
+    setDestination({ name: result.name, detail: result.detail, location: result.location });
+    router.push(paths.place);
   };
 
   return (
@@ -101,15 +107,17 @@ export default function SearchPage() {
                 title={result.name}
                 subtitle={[
                   formatDistance(distanceMeters(position, result.location)),
-                  result.isParking ? 'Parking' : result.parking && `Park at ${result.parking.name}`,
+                  result.isParking ? 'Parking' : result.detail,
                 ]
                   .filter(Boolean)
                   .join(' · ')}
                 trailing={
                   result.parking ? (
                     <AvailabilityTag level={pointLevel(result.parking)} />
-                  ) : (
+                  ) : result.isParking ? (
                     <span className={styles.none}>No parking</span>
+                  ) : (
+                    <Icon name="arrow" size={18} color="var(--pr-muted)" />
                   )
                 }
                 onClick={() => open(result)}

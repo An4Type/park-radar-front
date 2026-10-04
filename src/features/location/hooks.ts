@@ -2,17 +2,23 @@ import { useEffect, useState } from 'react';
 import type { LatLng } from '@/api/types';
 import { env } from '@/config/env';
 import { useLocationStore } from './locationStore';
-import { watchLocation } from './services/geolocation';
+import { isBlockedInBrowser, watchLocation, type GeoErrorKind } from './services/geolocation';
 
 export function useLocationTracking() {
   const setFix = useLocationStore((s) => s.setFix);
   const setStatus = useLocationStore((s) => s.setStatus);
+  const setError = useLocationStore((s) => s.setError);
+  const attempt = useLocationStore((s) => s.attempt);
 
   useEffect(() => {
     let stop: (() => void) | undefined;
     let cancelled = false;
     setStatus('locating');
-    void watchLocation(setFix, setStatus).then((unsubscribe) => {
+    const onError = (kind: GeoErrorKind) => {
+      if (kind !== 'denied') return setError(kind);
+      void isBlockedInBrowser().then((blocked) => !cancelled && setError(kind, blocked));
+    };
+    void watchLocation(setFix, onError).then((unsubscribe) => {
       if (cancelled) unsubscribe();
       else stop = unsubscribe;
     });
@@ -20,7 +26,7 @@ export function useLocationTracking() {
       cancelled = true;
       stop?.();
     };
-  }, [setFix, setStatus]);
+  }, [attempt, setError, setFix, setStatus]);
 }
 
 export function useUserPosition(): { position: LatLng; isFallback: boolean } {

@@ -43,6 +43,8 @@
 @media (min-width: 640px) {
   .top,
   .bottom {
-    width: 400px;
+    width: 100%;
+    max-width: 440px;
+    align-self: center;
   }
 }

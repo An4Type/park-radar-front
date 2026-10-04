@@ -4,15 +4,16 @@ import styles from './IconButton.module.css';
 export interface IconButtonProps {
   icon: IconName;
   label: string;
-  variant?: 'float' | 'active' | 'flat' | 'outline';
+  variant?: 'float' | 'active' | 'flat' | 'outline' | 'large';
   pressed?: boolean;
+  badge?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
-const ICON_SIZE = { float: 22, active: 22, flat: 20, outline: 18 } as const;
+const ICON_SIZE = { float: 22, active: 22, flat: 20, outline: 18, large: 24 } as const;
 
-export function IconButton({ icon, label, variant = 'float', pressed, onClick, className }: IconButtonProps) {
+export function IconButton({ icon, label, variant = 'float', pressed, badge, onClick, className }: IconButtonProps) {
   const strokeWidth = icon === 'back' ? 2.2 : 2;
   return (
     <button
@@ -23,6 +24,7 @@ export function IconButton({ icon, label, variant = 'float', pressed, onClick, c
       className={[styles.button, styles[variant], className].filter(Boolean).join(' ')}
     >
       <Icon name={icon} size={ICON_SIZE[variant]} strokeWidth={strokeWidth} />
+      {badge && <span className={styles.badge} aria-hidden="true" />}
     </button>
   );
 }

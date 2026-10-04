@@ -27,23 +27,13 @@ export function UserMarker({ position, heading, navigating }: { position: LatLng
   );
 }
 
-export function CountBadge({ position, free, onClick }: { position: LatLng; free: number; onClick?: () => void }) {
+export function DestinationMarker({ position, name }: { position: LatLng; name: string }) {
   return (
-    <Marker longitude={position.lng} latitude={position.lat} anchor="center" style={{ zIndex: 1 }}>
-      <button
-        type="button"
-        className={styles.badge}
-        onClick={(event) => {
-          event.stopPropagation();
-          onClick?.();
-        }}
-        aria-label={`${free} free spaces, open zone`}
-      >
-        <span className={styles.p} aria-hidden="true">
-          P
-        </span>
-        {free}
-      </button>
+    <Marker longitude={position.lng} latitude={position.lat} anchor="bottom" style={{ zIndex: 3 }}>
+      <svg width="34" height="44" viewBox="0 0 34 44" role="img" aria-label={`Destination: ${name}`}>
+        <path d="M17 43s14-14.2 14-25.5C31 8.9 24.7 3 17 3S3 8.9 3 17.5C3 28.8 17 43 17 43z" fill="var(--pr-ink)" stroke="#FFFFFF" strokeWidth="2.5" />
+        <circle cx="17" cy="17.5" r="5" fill="#FFFFFF" />
+      </svg>
     </Marker>
   );
 }

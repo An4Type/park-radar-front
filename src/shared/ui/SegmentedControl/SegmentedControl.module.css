@@ -1,0 +1,39 @@
+.track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  padding: 4px;
+  border-radius: var(--pr-radius-tile);
+  background: var(--pr-track);
+}
+
+.thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--count));
+  border-radius: var(--pr-radius-seg);
+  background: var(--pr-surface);
+  box-shadow: 0 1px 4px rgba(20, 23, 28, 0.12);
+  transform: translateX(calc(100% * var(--index)));
+  transition: transform var(--pr-duration) var(--pr-ease);
+}
+
+.option {
+  position: relative;
+  height: 44px;
+  border: 0;
+  border-radius: var(--pr-radius-seg);
+  background: transparent;
+  color: var(--pr-ink-2);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--pr-duration-fast) var(--pr-ease);
+}
+
+.selected {
+  color: var(--pr-ink);
+  font-weight: 700;
+}

@@ -4,12 +4,11 @@ import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useUserPosition } from '@/features/location/hooks';
 import { useMapCamera } from '@/features/map/hooks/useMapCamera';
-import { cellPoints } from '@/features/map/lib/geojson';
 import { useActiveRoute } from '@/features/navigation/hooks';
 import { useTripStore } from '@/features/navigation/tripStore';
 import { ParkingSummary } from '@/features/parking/components/ParkingSummary';
 import { useParkingPoint } from '@/features/parking/hooks';
-import { cellOf } from '@/features/parking/lib/cellIndex';
+import { hexPoints } from '@/features/parking/lib/hexIndex';
 import { formatDistance, formatDuration, formatUpdatedAgo } from '@/shared/lib/format';
 import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
@@ -35,7 +34,7 @@ export default function ParkingPage() {
   const framed = useRef<string>(undefined);
   useEffect(() => {
     if (!point || framed.current === point.id) return;
-    if (camera.fitTo([...cellPoints(cellOf(point)), destination?.location ?? position], SHEET_PADDING)) {
+    if (camera.fitTo([...hexPoints(point), destination?.location ?? position], SHEET_PADDING)) {
       framed.current = point.id;
     }
   }, [camera, destination, position, point]);
@@ -43,7 +42,9 @@ export default function ParkingPage() {
   const detail = point
     ? destination
       ? `${formatDistance(distanceMeters(point, destination.location))} walk`
-      : formatUpdatedAgo(point.updatedAt)
+      : point.updatedAt
+        ? formatUpdatedAgo(point.updatedAt)
+        : ''
     : '';
 
   return (

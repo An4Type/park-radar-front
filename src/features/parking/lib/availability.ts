@@ -22,3 +22,8 @@ export const AVAILABILITY_LABEL: Record<AvailabilityLevel, string> = {
 };
 
 export const FILLING_UP_BELOW = 5;
+
+export const availableEv = (point: Pick<ParkingPoint, 'freeEv' | 'evChargingSpaces'>) => point.freeEv ?? point.evChargingSpaces;
+
+export const availableAccessible = (point: Pick<ParkingPoint, 'freeAccessible' | 'accessibleSpaces'>) =>
+  point.freeAccessible ?? point.accessibleSpaces;

@@ -27,46 +27,9 @@
   box-shadow: 0 1px 4px rgba(20, 23, 28, 0.25);
 }
 
-.badge {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 10px 0 4px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--pr-surface);
-  box-shadow: 0 2px 6px rgba(20, 23, 28, 0.12);
-  color: var(--pr-ink);
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  animation: pop 260ms var(--pr-ease) backwards;
-}
-
-.p {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--pr-primary);
-  color: var(--pr-on-primary);
-  font-size: 12px;
-}
-
 @keyframes breathe {
   50% {
     transform: scale(1.18);
     opacity: 0.1;
-  }
-}
-
-@keyframes pop {
-  from {
-    transform: scale(0.6);
-    opacity: 0;
   }
 }

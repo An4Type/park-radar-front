@@ -31,6 +31,7 @@ All configuration is `VITE_*` env vars, validated at startup in `src/config/env.
 | `VITE_API_MODE` | `mock` | `mock` = in-app backend, `http` = real API |
 | `VITE_API_BASE_URL` | `http://localhost:8080/v1` | Real API base URL |
 | `VITE_MAP_STYLE_URL` | OpenFreeMap Positron | Any MapLibre style (no key needed by default) |
+| `VITE_ROUTING_URL` | OSRM demo server | Road routing used by the mock |
 | `VITE_DEFAULT_CENTER` | Poznań Old Market | Map centre when location is unavailable |
 
 ## Architecture
@@ -88,6 +89,13 @@ The backend sends **points** (one per facility). The client draws them like this
 A point is about 200 bytes of JSON versus several hundred for a polygon, so the poll payload stays small. Hex size can be tuned on the client (`CELL_RESOLUTION` in `src/features/parking/lib/cellIndex.ts`) without changing the backend.
 
 The mock (`src/api/mock`) produces the same JSON. It includes the real Poznań facilities plus generated ones, and its counts change every 5 s tick. Its data goes through the same schema and mapper as the HTTP client.
+
+## Navigation
+
+- **Road routes:** the mock asks an OSRM server (`VITE_ROUTING_URL`, the public OpenStreetMap demo by default) for a driving route. Routes and turn instructions follow real streets. If the router can't be reached, it falls back to a simple two-leg route. The real backend's `GET /routes` should return the same `Route` shape.
+- **Snap to road:** each GPS fix is projected onto the route line (`features/navigation/lib/routeMatcher.ts`). Within 40 m, the arrow, the camera and the map rotation follow the road, and the route behind you is trimmed. Distances to the next turn are measured along the road.
+- **Rerouting:** once you've joined the route, 3 fixes in a row more than 40 m away fetch a new route from your position, at most once every 10 s.
+- **Production:** the public OSRM demo server is for development only. Use the backend, or your own OSRM/Valhalla instance, in production.
 
 ## Native apps
 

@@ -11,7 +11,10 @@
   background: var(--pr-surface);
   border-radius: var(--pr-radius-sheet) var(--pr-radius-sheet) 0 0;
   box-shadow: var(--pr-shadow-sheet);
-  touch-action: none;
+  max-height: calc(100% - var(--pr-safe-top) - 12px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   pointer-events: auto;
   transition: transform var(--pr-duration) var(--pr-ease);
   animation: slide-up 340ms var(--pr-ease) backwards;

@@ -1,4 +1,5 @@
 .button {
+  position: relative;
   flex: none;
   display: flex;
   align-items: center;
@@ -40,10 +41,29 @@
   color: var(--pr-ink);
 }
 
+.large {
+  width: 64px;
+  height: 64px;
+  background: var(--pr-surface);
+  color: var(--pr-primary);
+  box-shadow: var(--pr-shadow-cta);
+}
+
 .outline {
   width: 44px;
   height: 44px;
   background: var(--pr-surface);
   border: 1px solid var(--pr-border);
   color: var(--pr-ink);
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--pr-primary);
+  border: 2px solid var(--pr-surface);
 }

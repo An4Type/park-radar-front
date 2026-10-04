@@ -49,3 +49,8 @@
   color: var(--pr-primary-pressed);
   font-size: 15px;
 }
+
+.text:disabled {
+  background: transparent;
+  color: var(--pr-disabled-fg);
+}
