@@ -31,8 +31,37 @@ All configuration is `VITE_*` env vars, validated at startup in `src/config/env.
 | `VITE_API_MODE` | `mock` | `mock` = in-app backend, `http` = real API |
 | `VITE_API_BASE_URL` | `http://localhost:8080/v1` | Real API base URL |
 | `VITE_MAP_STYLE_URL` | OpenFreeMap Positron | Any MapLibre style (no key needed by default) |
-| `VITE_ROUTING_URL` | OSRM demo server | Road routing used by the mock |
-| `VITE_DEFAULT_CENTER` | Poznań Old Market | Map centre when location is unavailable |
+| `VITE_VALHALLA_URL` | FOSSGIS Valhalla server | Road routing, tried first |
+| `VITE_ROUTING_URL` | OSRM demo server | Road routing, tried second |
+| `VITE_DEFAULT_CENTER` | Tauron Arena, Kraków | Map centre when location is unavailable |
+| `VITE_DEFAULT_CENTER_NAME` | `Tauron Arena` | Name shown for that centre |
+
+## Public data and services
+
+Everything the app loads from outside this repo. Except for the parking data, it all comes from **OpenStreetMap** or is bundled with the app. No source needs an API key.
+
+| What | Service | Data and licence | Used in |
+| --- | --- | --- | --- |
+| Base map (streets, buildings, labels) | [OpenFreeMap](https://openfreemap.org), Positron style: `tiles.openfreemap.org` | Vector tiles in the [OpenMapTiles](https://openmaptiles.org) schema, built from OpenStreetMap ([ODbL](https://www.openstreetmap.org/copyright)). Fonts (Noto Sans) and icon sprites come from the same server. | `VITE_MAP_STYLE_URL`, `features/map` |
+| Low-zoom relief | OpenFreeMap: `tiles.openfreemap.org/natural_earth` | [Natural Earth](https://www.naturalearthdata.com) shaded relief, public domain | Part of the Positron style |
+| Fallback map (no WebGL2) | OpenStreetMap standard tiles: `tile.openstreetmap.org` | OpenStreetMap raster tiles, ODbL. Light use only, per the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/). | `features/map/fallback/LeafletMap.tsx` |
+| Driving routes and turn-by-turn (first choice) | [Valhalla](https://github.com/valhalla/valhalla) public server run by FOSSGIS: `valhalla1.openstreetmap.de` | Routes on OpenStreetMap roads. Turn instructions come back in the app language (`en-GB` / `pl-PL`). | `VITE_VALHALLA_URL`, `api/mock/routing/valhallaRoute.ts` |
+| Driving routes (second choice) | [OSRM](https://project-osrm.org) demo server: `router.project-osrm.org` | Routes on OpenStreetMap roads. The app writes the turn instructions itself, in the app language. | `VITE_ROUTING_URL`, `api/mock/routing/osrmRoute.ts` |
+| Place and street search | [Photon](https://photon.komoot.io) by komoot: `photon.komoot.io` | Geocoding of OpenStreetMap data. Results are biased towards the user's position. | `api/geocoding/photon.ts` |
+| Address of a reported spot | [Nominatim](https://nominatim.org): `nominatim.openstreetmap.org` | Reverse geocoding of OpenStreetMap data. At most 1 request/s, per the [usage policy](https://operations.osmfoundation.org/policies/nominatim/). Results are cached in memory per ~11 m. | `features/reports/lib/reverseGeocode.ts` |
+| Parking availability, zones, driver reports | Park Radar backend `parkradar.makssm.com`, reached through the Worker at `/api` | Project data, not public. Parking counts come from the backend's sources; zones are reports from app users. | `VITE_API_BASE_URL`, `api/http`, `worker/index.ts` |
+
+Each route provider has a 5 s timeout. If both fail, the app draws a simple offline route (`api/mock/routeGenerator.ts`). The public routing, search and geocoding servers are free community services meant for light use. For heavier traffic, host your own instances or route through the backend.
+
+**Attribution.** The map shows "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" (MapLibre), or "© OpenStreetMap contributors" on the fallback map. Keep this visible: the ODbL requires it.
+
+**Bundled with the app (no network):**
+
+- **Figtree** typeface, via [Fontsource](https://fontsource.org) (SIL Open Font License).
+- **H3** hexagon grid ([h3-js](https://github.com/uber/h3-js), Apache-2.0). Only the mock backend uses it.
+- **Mock data** (`api/mock`): parking names and street names for Poznań and Kraków, written by hand. Counts are generated.
+
+**What leaves the device.** The user's position goes to the routing servers (route start), to Photon (to rank search results), to Nominatim (only the coordinates of a spot being reported) and to the backend (when submitting a report). Nothing is sent to any analytics service.
 
 ## Architecture
 
