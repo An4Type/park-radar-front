@@ -26,6 +26,13 @@ const ICONS = {
   close: <path d="M6 6l12 12M18 6L6 18" />,
   check: <path d="M5 12l5 5 9-10" />,
   ev: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
+  report: (
+    <>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-5 4v-4.2A1.5 1.5 0 0 1 4 14.5z" />
+      <path d="M12 7.5v5M9.5 10h5" />
+    </>
+  ),
+  filter: <path d="M4 6h16M7 12h10M10 18h4" />,
   accessible: (
     <>
       <circle cx="11" cy="4.5" r="1.6" />

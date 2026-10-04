@@ -43,3 +43,29 @@
     transform: translateY(-6px);
   }
 }
+
+.clickable {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--pr-duration-fast) var(--pr-ease);
+}
+
+.clickable:active {
+  transform: scale(0.98);
+}
+
+.hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pr-primary-pressed);
+}
+
+.chevron {
+  flex: none;
+  color: var(--pr-primary);
+}

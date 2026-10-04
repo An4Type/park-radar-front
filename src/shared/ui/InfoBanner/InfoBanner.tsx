@@ -7,14 +7,33 @@ export interface InfoBannerProps {
   icon?: IconName;
   tone?: 'neutral' | 'warning';
   action?: ReactNode;
+  hint?: ReactNode;
+  onClick?: () => void;
 }
 
-export function InfoBanner({ children, icon = 'info', tone = 'neutral', action }: InfoBannerProps) {
-  return (
-    <div className={[styles.banner, styles[tone]].join(' ')} role="status">
+export function InfoBanner({ children, icon = 'info', tone = 'neutral', action, hint, onClick }: InfoBannerProps) {
+  const className = [styles.banner, styles[tone], onClick && styles.clickable].filter(Boolean).join(' ');
+  const content = (
+    <>
       <Icon name={icon} size={22} />
-      <span className={styles.text}>{children}</span>
-      {action}
+      <span className={styles.text}>
+        {children}
+        {hint && <span className={styles.hint}>{hint}</span>}
+      </span>
+      {onClick ? <Icon name="arrow" size={18} className={styles.chevron} /> : action}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" className={className} onClick={onClick}>
+        {content}
+      </button>
+    );
+  }
+  return (
+    <div className={className} role="status">
+      {content}
     </div>
   );
 }
