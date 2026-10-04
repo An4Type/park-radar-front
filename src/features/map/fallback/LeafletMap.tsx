@@ -8,8 +8,11 @@ import { useUserPosition } from '@/features/location/hooks';
 import { useLocationStore } from '@/features/location/locationStore';
 import { useActiveRoute } from '@/features/navigation/hooks';
 import { useNavigationStore } from '@/features/navigation/navigationStore';
-import { useParking } from '@/features/parking/hooks';
-import { pointLevel, type AvailabilityLevel } from '@/features/parking/lib/availability';
+import { useTripStore } from '@/features/navigation/tripStore';
+import { useVisibleParking } from '@/features/parking/hooks';
+import { useReports } from '@/features/reports/hooks';
+import { hexAround } from '@/features/parking/lib/hexIndex';
+import { availableAccessible, availableEv, pointLevel, type AvailabilityLevel } from '@/features/parking/lib/availability';
 import { HEX_RADIUS_M, nearestOf } from '@/features/parking/lib/hexIndex';
 import { distanceMeters } from '@/shared/lib/geo';
 import { paths, screenFor } from '@/shared/navigation/paths';
@@ -49,8 +52,8 @@ function labelRows(p: ParkingPoint, show: { free: boolean; accessible: boolean; 
     const text = p.active ? String(p.free) : 'Closed';
     rows.push(`<span class="${styles.row}">${ICON_P}<b class="${p.free > 0 ? '' : styles.full}">${text}</b></span>`);
   }
-  if (show.ev && p.evChargingSpaces > 0) rows.push(`<span class="${styles.row}">${ICON_EV}<b>${p.evChargingSpaces}</b></span>`);
-  if (show.accessible && p.accessibleSpaces > 0) rows.push(`<span class="${styles.row}">${ICON_ACCESSIBLE}<b>${p.accessibleSpaces}</b></span>`);
+  if (show.ev && availableEv(p) > 0) rows.push(`<span class="${styles.row}">${ICON_EV}<b>${availableEv(p)}</b></span>`);
+  if (show.accessible && availableAccessible(p) > 0) rows.push(`<span class="${styles.row}">${ICON_ACCESSIBLE}<b>${availableAccessible(p)}</b></span>`);
   return rows;
 }
 
@@ -65,18 +68,22 @@ export default function LeafletMap() {
   const router = useIonRouter();
   const screen = screenFor(useLocation().pathname);
   const parkingId = screen.kind === 'parking' || screen.kind === 'navigate' ? screen.parkingId : undefined;
-  const navigating = screen.kind === 'navigate';
+  const navigating = screen.kind === 'navigate' || screen.kind === 'navigateReport';
 
   const { position } = useUserPosition();
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
   const labels = useMapStore((s) => s.labels);
   const setFallback = useCameraStore((s) => s.setFallback);
-  const { points, byId, geometry } = useParking();
+  const { byId, geometry, visiblePoints: points, visibleGeometry } = useVisibleParking();
+  const { reports, byId: reportsById } = useReports();
+  const navReport = screen.kind === 'navigateReport' ? reportsById.get(screen.reportId) : undefined;
   const selected = parkingId ? byId.get(parkingId) : undefined;
-  const { data: route } = useActiveRoute(navigating ? selected : undefined);
+  const { data: route } = useActiveRoute(navigating ? (selected ?? navReport) : undefined);
   const guidanceMarker = useNavigationStore((s) => s.marker);
   const remaining = useNavigationStore((s) => s.remaining);
+  const destination = useTripStore((s) => s.destination);
+  const showDestination = Boolean(destination) && (screen.kind === 'place' || screen.kind === 'parking' || navigating);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<L.Map | null>(null);
@@ -85,9 +92,16 @@ export default function LeafletMap() {
   const openRef = useRef<(id: string) => void>(() => undefined);
 
   openRef.current = (id: string) => {
-    if (screen.kind !== 'home' && screen.kind !== 'parking') return;
+    if (screen.kind !== 'home' && screen.kind !== 'parking' && screen.kind !== 'report') return;
     if (screen.kind === 'parking' && screen.parkingId === id) return;
-    router.push(paths.parking(id), 'forward', screen.kind === 'parking' ? 'replace' : 'push');
+    router.push(paths.parking(id), 'forward', screen.kind === 'home' ? 'push' : 'replace');
+  };
+
+  const openReportRef = useRef<(id: string) => void>(() => undefined);
+  openReportRef.current = (id: string) => {
+    if (screen.kind !== 'home' && screen.kind !== 'parking' && screen.kind !== 'report') return;
+    if (screen.kind === 'report' && screen.reportId === id) return;
+    router.push(paths.report(id), 'forward', screen.kind === 'home' ? 'push' : 'replace');
   };
 
   useEffect(() => {
@@ -153,20 +167,40 @@ export default function LeafletMap() {
   const labelLayer = useMemo(() => L.layerGroup(), []);
   const selectedLayer = useMemo(() => L.layerGroup(), []);
   const routeLayer = useMemo(() => L.layerGroup(), []);
+  const reportLayer = useMemo(() => L.layerGroup(), []);
 
   useEffect(() => {
     if (!map) return;
-    for (const layer of [heatLayer, hexLayer, outlineLayer, selectedLayer, routeLayer, dotLayer, labelLayer]) layer.addTo(map);
+    const all = [heatLayer, hexLayer, outlineLayer, reportLayer, selectedLayer, routeLayer, dotLayer, labelLayer];
+    for (const layer of all) layer.addTo(map);
     return () => {
-      for (const layer of [heatLayer, hexLayer, outlineLayer, selectedLayer, routeLayer, dotLayer, labelLayer]) layer.remove();
+      for (const layer of all) layer.remove();
     };
-  }, [map, heatLayer, hexLayer, outlineLayer, selectedLayer, routeLayer, dotLayer, labelLayer]);
+  }, [map, heatLayer, hexLayer, outlineLayer, reportLayer, selectedLayer, routeLayer, dotLayer, labelLayer]);
+
+  useEffect(() => {
+    reportLayer.clearLayers();
+    if (navigating) return;
+    for (const report of reports) {
+      const color = report.level === 'none' ? MAP_COLORS.danger : MAP_COLORS.primary;
+      const opacity = report.level === 'many' ? 0.26 : 0.12;
+      L.polygon(hexAround(report).map(([lng, lat]) => [lat, lng] as L.LatLngTuple), {
+        color,
+        weight: 2,
+        dashArray: '6 5',
+        fillColor: color,
+        fillOpacity: opacity,
+      })
+        .on('click', () => openReportRef.current(report.id))
+        .addTo(reportLayer);
+    }
+  }, [reports, navigating, reportLayer]);
 
   useEffect(() => {
     hexLayer.clearLayers();
     outlineLayer.clearLayers();
     hexPolygons.current.clear();
-    for (const hex of geometry.hexes) {
+    for (const hex of visibleGeometry.hexes) {
       const polygon = L.polygon(hex.ring.map(([lng, lat]) => [lat, lng] as L.LatLngTuple), { stroke: false, fillOpacity: 0 });
       polygon.on('click', (event: L.LeafletMouseEvent) => {
         const at = { lat: event.latlng.lat, lng: event.latlng.lng };
@@ -177,13 +211,13 @@ export default function LeafletMap() {
       polygon.addTo(hexLayer);
       hexPolygons.current.set(hex.id, polygon);
     }
-    if (geometry.outline.length) {
-      L.geoJSON({ type: 'MultiPolygon', coordinates: geometry.outline } as GeoJSON.MultiPolygon, {
+    if (visibleGeometry.outline.length) {
+      L.geoJSON({ type: 'MultiPolygon', coordinates: visibleGeometry.outline } as GeoJSON.MultiPolygon, {
         style: { color: MAP_COLORS.primary, weight: 1.5, opacity: 0.5, fill: false },
         interactive: false,
       }).addTo(outlineLayer);
     }
-  }, [geometry, hexLayer, outlineLayer, points]);
+  }, [visibleGeometry, hexLayer, outlineLayer, points]);
 
   useEffect(() => {
     for (const point of points) {
@@ -265,6 +299,19 @@ export default function LeafletMap() {
     L.polyline(latlngs, { color: '#FFFFFF', weight: 12, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(routeLayer);
     L.polyline(latlngs, { color: MAP_COLORS.primary, weight: 7, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(routeLayer);
   }, [route, remaining, navigating, routeLayer]);
+
+  const destinationMarker = useRef<L.Marker | null>(null);
+  useEffect(() => {
+    destinationMarker.current?.remove();
+    destinationMarker.current = null;
+    if (!map || !showDestination || !destination) return;
+    const html = `<svg width="34" height="44" viewBox="0 0 34 44"><path d="M17 43s14-14.2 14-25.5C31 8.9 24.7 3 17 3S3 8.9 3 17.5C3 28.8 17 43 17 43z" fill="${MAP_COLORS.ink}" stroke="#fff" stroke-width="2.5"/><circle cx="17" cy="17.5" r="5" fill="#fff"/></svg>`;
+    destinationMarker.current = L.marker(latLng(destination.location), {
+      icon: L.divIcon({ html, className: styles.icon, iconSize: [34, 44], iconAnchor: [17, 43] }),
+      interactive: false,
+      zIndexOffset: 900,
+    }).addTo(map);
+  }, [map, destination, showDestination]);
 
   const userMarker = useRef<L.Marker | null>(null);
   const markerPosition = navigating && guidanceMarker ? guidanceMarker.position : position;

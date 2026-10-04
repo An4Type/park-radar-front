@@ -5,6 +5,7 @@ const RATIO = 2;
 const ICON = 16 * RATIO;
 
 const BOLT = 'M13 3L5 14h6l-1 7 8-11h-6z';
+const REPORT = 'M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-5 4v-4.2A1.5 1.5 0 0 1 4 14.5z';
 const WHEELCHAIR = 'M11 8v5h5l2.5 5M11 10.5h4M8.2 11.5a5.5 5.5 0 1 0 7.3 7.3';
 
 function canvas(width: number, height: number) {
@@ -56,8 +57,8 @@ function glyph(path: string, mode: 'fill' | 'stroke') {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   if (mode === 'fill') ctx.fill(shape);
-  else {
-    ctx.stroke(shape);
+  else ctx.stroke(shape);
+  if (path === WHEELCHAIR) {
     ctx.beginPath();
     ctx.arc(11, 4.5, 1.8, 0, Math.PI * 2);
     ctx.fill();
@@ -70,6 +71,7 @@ const FACTORIES = {
   'pr-p': badgeP,
   'pr-ev': () => glyph(BOLT, 'fill'),
   'pr-accessible': () => glyph(WHEELCHAIR, 'stroke'),
+  'pr-report': () => glyph(REPORT, 'stroke'),
 } as const;
 
 export type MapImageId = keyof typeof FACTORIES;

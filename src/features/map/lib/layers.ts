@@ -198,3 +198,57 @@ export function parkingLabels(show: LabelVisibility): { layer: LayerProps; visib
   };
   return { layer: layer as unknown as LayerProps, visible };
 }
+
+export const REPORT_FILL_LAYER_ID = 'reports-fill';
+export const REPORT_LABEL_LAYER_ID = 'reports-labels';
+
+const reportLevel = ['get', 'level'];
+
+export const reportFill = {
+  id: REPORT_FILL_LAYER_ID,
+  type: 'fill',
+  paint: {
+    'fill-color': ['match', reportLevel, 'none', MAP_COLORS.danger, MAP_COLORS.primary],
+    'fill-opacity': ['match', reportLevel, 'many', 0.26, 'few', 0.12, 0.12],
+  },
+} as unknown as LayerProps;
+
+export const reportOutline = {
+  id: 'reports-outline',
+  type: 'line',
+  layout: { 'line-join': 'round' },
+  paint: {
+    'line-color': ['match', reportLevel, 'none', MAP_COLORS.danger, MAP_COLORS.primary],
+    'line-width': 2,
+    'line-dasharray': [2, 1.5],
+  },
+} as unknown as LayerProps;
+
+export const reportLabels = {
+  id: REPORT_LABEL_LAYER_ID,
+  type: 'symbol',
+  minzoom: 13.5,
+  layout: {
+    'icon-image': 'pr-pill',
+    'icon-text-fit': 'both',
+    'text-font': ['Noto Sans Bold'],
+    'text-size': 12,
+    'text-anchor': 'bottom',
+    'text-offset': [0, -0.9],
+    'text-allow-overlap': false,
+    'text-field': [
+      'format',
+      ['image', 'pr-report'],
+      {},
+      ' ',
+      {},
+      ['match', reportLevel, 'many', 'Many', 'few', 'Few', 'None'],
+      { 'text-color': ['match', reportLevel, 'none', MAP_COLORS.danger, MAP_COLORS.ink] },
+    ],
+  },
+} as unknown as LayerProps;
+
+export function withVisibility(layer: LayerProps, visible: boolean): LayerProps {
+  const { layout } = layer as { layout?: Record<string, unknown> };
+  return { ...layer, layout: { ...layout, visibility: visible ? 'visible' : 'none' } } as LayerProps;
+}

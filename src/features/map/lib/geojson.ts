@@ -1,5 +1,7 @@
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polygon } from 'geojson';
-import type { LatLng, ParkingPoint } from '@/api/types';
+import type { LatLng, ParkingPoint, ParkingReport } from '@/api/types';
+import { availableAccessible, availableEv } from '@/features/parking/lib/availability';
+import { hexAround } from '@/features/parking/lib/hexIndex';
 import type { HexShape, MultiPolygonCoords } from '@/features/parking/model';
 import { toLngLat } from '@/shared/lib/geo';
 
@@ -45,8 +47,8 @@ export function pointsToFeatures(points: ParkingPoint[]): FeatureCollection<Poin
         id: point.id,
         free: point.free,
         active: point.active,
-        accessible: point.accessibleSpaces,
-        ev: point.evChargingSpaces,
+        accessible: availableAccessible(point),
+        ev: availableEv(point),
         weight: heatWeight(point),
       },
     })),
@@ -58,5 +60,27 @@ export function lineOf(points: LatLng[]): Feature<LineString> {
     type: 'Feature',
     properties: {},
     geometry: { type: 'LineString', coordinates: points.map(toLngLat) },
+  };
+}
+
+export function reportsToFeatures(reports: ParkingReport[]): FeatureCollection<Polygon, { id: string; level: string }> {
+  return {
+    type: 'FeatureCollection',
+    features: reports.map((report) => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [hexAround(report)] },
+      properties: { id: report.id, level: report.level },
+    })),
+  };
+}
+
+export function reportsToPoints(reports: ParkingReport[]): FeatureCollection<Point, { id: string; level: string }> {
+  return {
+    type: 'FeatureCollection',
+    features: reports.map((report) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [report.lng, report.lat] },
+      properties: { id: report.id, level: report.level },
+    })),
   };
 }
