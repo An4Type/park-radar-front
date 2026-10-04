@@ -11,7 +11,11 @@ describe('mock parking API', () => {
     const dtos = parkingDtos(poznan, t0);
     expect(() => ParkingResponseSchema.parse({ parking: dtos })).not.toThrow();
     expect(dtos.length).toBeGreaterThan(50);
-    dtos.forEach((d) => expect(d.occupiedSpaces + d.freeSpaces).toBe(d.totalSpaces));
+    dtos.forEach((d) => {
+      expect(d.freeRegularSpaces).toBeLessThanOrEqual(d.regularSpaces!);
+      expect(d.freeDisabledSpaces).toBeLessThanOrEqual(d.disabledSpaces!);
+      expect(d.freeEvChargerSpaces).toBeLessThanOrEqual(d.evChargerSpaces!);
+    });
   });
 
   it('includes the real Poznań facilities', () => {
@@ -24,7 +28,7 @@ describe('mock parking API', () => {
     const b = parkingDtos(poznan, t0 + TICK_MS);
     expect(b.map((d) => d.id)).toEqual(a.map((d) => d.id));
     expect(b.map((d) => d.latitude)).toEqual(a.map((d) => d.latitude));
-    expect(b.some((d, i) => d.freeSpaces !== a[i].freeSpaces)).toBe(true);
+    expect(b.some((d, i) => d.freeRegularSpaces !== a[i].freeRegularSpaces)).toBe(true);
   });
 
   it('returns mapped points through the same path as the HTTP client', async () => {

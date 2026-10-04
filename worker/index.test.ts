@@ -22,9 +22,21 @@ describe('API proxy', () => {
     expect(upstream).not.toHaveBeenCalled();
   });
 
-  it('rejects writes', async () => {
+  it('rejects writes outside /api/zones', async () => {
     const res = await proxyApi(new Request('https://app.example/api/parking', { method: 'POST' }), 'https://backend.example');
     expect(res.status).toBe(405);
+  });
+
+  it('forwards zone reports as JSON POST', async () => {
+    const upstream = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 201 }));
+    const body = JSON.stringify({ latitude: 50.06, longitude: 19.92, level: 'few' });
+    const res = await proxyApi(new Request('https://app.example/api/zones', { method: 'POST', body }), 'https://backend.example');
+    const [url, init] = upstream.mock.calls[0] as [URL, RequestInit];
+    expect(String(url)).toBe('https://backend.example/api/zones');
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(body);
+    expect(res.status).toBe(201);
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
   it('returns 502 when the backend is unreachable', async () => {

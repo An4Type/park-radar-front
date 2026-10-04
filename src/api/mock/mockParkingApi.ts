@@ -5,6 +5,7 @@ import { ParkingResponseSchema } from '../schemas';
 import type { Destination, LatLng, ParkingApi, Route } from '../types';
 import { DESTINATIONS } from './fixtures';
 import { parkingDtos } from './pointGenerator';
+import { createReportStore } from './reportStore';
 import { osrmRoute } from './routing/osrmRoute';
 import { valhallaRoute } from './routing/valhallaRoute';
 import { withTimeout } from './routing/withTimeout';
@@ -15,6 +16,7 @@ export interface MockOptions {
   now?: () => number;
   routers?: ReadonlyArray<Router>;
   routerTimeoutMs?: number;
+  seedReports?: boolean;
 }
 
 type Router = (from: LatLng, to: LatLng, signal?: AbortSignal) => Promise<Route>;
@@ -50,7 +52,10 @@ export function createMockParkingApi({
   now = Date.now,
   routers = [valhallaRoute, osrmRoute],
   routerTimeoutMs = 5_000,
+  seedReports = true,
 }: MockOptions = {}): ParkingApi {
+  const reports = createReportStore({ seed: seedReports });
+
   return {
     async getSnapshot({ near }, signal) {
       await delay(latency, signal);
@@ -84,6 +89,16 @@ export function createMockParkingApi({
         }
       }
       return routeBetween(from, to);
+    },
+
+    async getReports({ near }, signal) {
+      await delay(latency, signal);
+      return reports.list(near, now());
+    },
+
+    async submitReport(input) {
+      await delay(latency);
+      return reports.add(input, now());
     },
   };
 }

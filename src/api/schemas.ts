@@ -5,21 +5,34 @@ export const LatLngSchema = z.object({
   lng: z.number().min(-180).max(180),
 });
 
-export const ParkingDtoSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  address: z.string().nullish().transform((v) => v ?? ''),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  totalSpaces: z.number().int().nonnegative(),
-  occupiedSpaces: z.number().int().nonnegative(),
-  freeSpaces: z.number().int().nonnegative(),
-  accessibleSpaces: z.number().int().nonnegative().default(0),
-  evChargingSpaces: z.number().int().nonnegative().default(0),
-  status: z.string(),
-  confidence: z.number().min(0).max(1).nullish().transform((v) => v ?? null),
-  lastUpdatedAt: z.string().datetime({ offset: true }).nullish().transform((v) => v ?? null),
-});
+export const ParkingDtoSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    address: z.string().nullish().transform((v) => v ?? ''),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    regularSpaces: z.number().int().nonnegative().nullish(),
+    freeRegularSpaces: z.number().int().nonnegative().nullish(),
+    disabledSpaces: z.number().int().nonnegative().nullish(),
+    freeDisabledSpaces: z.number().int().nonnegative().nullish(),
+    evChargerSpaces: z.number().int().nonnegative().nullish(),
+    freeEvChargerSpaces: z.number().int().nonnegative().nullish(),
+    totalSpaces: z.number().int().nonnegative().nullish(),
+    occupiedSpaces: z.number().int().nonnegative().nullish(),
+    freeSpaces: z.number().int().nonnegative().nullish(),
+    accessibleSpaces: z.number().int().nonnegative().nullish(),
+    evChargingSpaces: z.number().int().nonnegative().nullish(),
+    isPaid: z.boolean().nullish().transform((v) => v ?? null),
+    type: z.string().nullish().transform((v) => (v ? v.trim().toUpperCase() : null)),
+    status: z.string(),
+    confidence: z.number().min(0).max(1).nullish().transform((v) => v ?? null),
+    lastUpdatedAt: z.string().datetime({ offset: true }).nullish().transform((v) => v ?? null),
+  })
+  .refine((p) => p.regularSpaces != null || p.totalSpaces != null, {
+    message: 'Either regularSpaces or totalSpaces is required',
+  });
+
 
 export const ParkingResponseSchema = z.object({
   parking: z.array(ParkingDtoSchema),
@@ -32,6 +45,7 @@ export const RawParkingResponseSchema = z.object({
 export const DestinationSchema = z.object({
   id: z.string(),
   name: z.string(),
+  detail: z.string().optional(),
   location: LatLngSchema,
 });
 
@@ -62,3 +76,19 @@ export const RouteSchema = z.object({
   geometry: z.array(LatLngSchema).min(2),
   steps: z.array(RouteStepSchema).min(1),
 });
+
+export const ReportLevelSchema = z.enum(['none', 'few', 'many']);
+
+export const ZoneDtoSchema = z.object({
+  id: z.string(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  level: z
+    .string()
+    .transform((v) => v.toLowerCase())
+    .pipe(ReportLevelSchema),
+  createdAt: z.string().datetime({ offset: true }).nullish().transform((v) => v ?? null),
+  expiresAt: z.string().datetime({ offset: true }).nullish().transform((v) => v ?? null),
+});
+
+export const RawZonesResponseSchema = z.object({ zones: z.array(z.unknown()) });

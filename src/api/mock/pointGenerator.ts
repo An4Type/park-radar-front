@@ -127,7 +127,14 @@ function specialSpaces(site: Site) {
   const accessible = site.totalSpaces < 8 ? 0 : Math.max(1, Math.round(site.totalSpaces * (0.02 + rnd() * 0.03)));
   const evChance = site.totalSpaces >= 40 ? 0.65 : 0.15;
   const ev = rnd() < evChance ? 1 + Math.floor(rnd() * Math.min(16, 2 + site.totalSpaces * 0.04)) : 0;
-  return { accessibleSpaces: accessible, evChargingSpaces: ev };
+  const type =
+    site.totalSpaces < 40
+      ? rnd() < 0.6 ? 'STREET' : 'OUTDOOR'
+      : site.totalSpaces < 150
+        ? rnd() < 0.75 ? 'OUTDOOR' : 'UNDERGROUND'
+        : rnd() < 0.5 ? 'MULTI_LEVEL' : 'UNDERGROUND';
+  const isPaid = rnd() < (type === 'STREET' ? 0.55 : 0.8);
+  return { disabledSpaces: accessible, evChargerSpaces: ev, isPaid, type };
 }
 
 function freeAt(site: Site, now: number): number {
@@ -140,18 +147,27 @@ function freeAt(site: Site, now: number): number {
 
 export function parkingDtos(anchor: LatLng, now = Date.now()): ParkingDto[] {
   return citySites(anchor).map((site) => {
-    const freeSpaces = freeAt(site, now);
+    const free = freeAt(site, now);
     const updatedSecondsAgo = seededRandom(hashString(site.id) ^ Math.floor(now / TICK_MS))() * 20;
+    const { disabledSpaces, evChargerSpaces, isPaid, type } = specialSpaces(site);
+    const regularSpaces = Math.max(0, site.totalSpaces - disabledSpaces - evChargerSpaces);
+    const share = site.totalSpaces > 0 ? free / site.totalSpaces : 0;
+    const freeDisabledSpaces = Math.min(disabledSpaces, Math.round(disabledSpaces * share));
+    const freeEvChargerSpaces = Math.min(evChargerSpaces, Math.round(evChargerSpaces * share));
     return {
       id: site.id,
       name: site.name,
       address: site.address,
       latitude: site.latitude,
       longitude: site.longitude,
-      totalSpaces: site.totalSpaces,
-      occupiedSpaces: site.totalSpaces - freeSpaces,
-      freeSpaces,
-      ...specialSpaces(site),
+      isPaid,
+      type,
+      regularSpaces,
+      freeRegularSpaces: Math.min(regularSpaces, Math.max(0, free - freeDisabledSpaces - freeEvChargerSpaces)),
+      disabledSpaces,
+      freeDisabledSpaces,
+      evChargerSpaces,
+      freeEvChargerSpaces,
       status: site.active ? 'ACTIVE' : 'INACTIVE',
       confidence: Math.round(site.confidence * 100) / 100,
       lastUpdatedAt: new Date(now - updatedSecondsAgo * 1000).toISOString(),
