@@ -1,5 +1,5 @@
 import { IonPage, useIonRouter, useIonViewDidEnter } from '@ionic/react';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LatLng } from '@/api/types';
 import { useUserPosition } from '@/features/location/hooks';
 import { useTripStore } from '@/features/navigation/tripStore';
@@ -28,7 +28,20 @@ interface Result {
   isParking: boolean;
 }
 
-export default function SearchPage() {
+export interface ShowcaseLiveLocationRequest {
+  id: string;
+  query: string;
+}
+
+interface SearchPageProps {
+  showcaseLiveLocationRequest?: ShowcaseLiveLocationRequest | null;
+  onShowcaseLiveLocationComplete?: (requestId: string, selected: boolean) => void;
+}
+
+export default function SearchPage({
+  showcaseLiveLocationRequest,
+  onShowcaseLiveLocationComplete,
+}: SearchPageProps) {
   const router = useIonRouter();
   const goBack = useGoBack();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +50,8 @@ export default function SearchPage() {
   const setDestination = useTripStore((s) => s.setDestination);
   const search = useDestinationSearch(query);
   const { points } = useParking();
+  const latestResults = useRef<Result[]>([]);
+  const latestSearchQuery = useRef('');
 
   useIonViewDidEnter(() => inputRef.current?.focus());
 
@@ -60,7 +75,7 @@ export default function SearchPage() {
     return [...parking, ...places];
   }, [points, position, search.data, search.query]);
 
-  const open = (result: Result) => {
+  const open = useCallback((result: Result) => {
     tapFeedback();
     if (result.isParking && result.parking) {
       setDestination(null);
@@ -69,7 +84,26 @@ export default function SearchPage() {
     }
     setDestination({ name: result.name, detail: result.detail, location: result.location });
     router.push(paths.place);
-  };
+  }, [router, setDestination]);
+
+  useEffect(() => {
+    latestResults.current = results;
+    latestSearchQuery.current = search.query;
+  }, [results, search.query]);
+
+  useEffect(() => {
+    if (!showcaseLiveLocationRequest) return;
+    setQuery(showcaseLiveLocationRequest.query);
+
+    const timeout = window.setTimeout(() => {
+      const matchesCommand = latestSearchQuery.current.toLowerCase() === showcaseLiveLocationRequest.query.toLowerCase();
+      const firstOption = matchesCommand ? latestResults.current[0] : undefined;
+      if (firstOption) open(firstOption);
+      onShowcaseLiveLocationComplete?.(showcaseLiveLocationRequest.id, Boolean(firstOption));
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [onShowcaseLiveLocationComplete, open, showcaseLiveLocationRequest]);
 
   return (
     <IonPage className={styles.page}>
