@@ -1,7 +1,7 @@
 import { IonRouterOutlet } from '@ionic/react';
 import { Navigate, Route } from 'react-router-dom';
 import { useLocationTracking } from '@/features/location/hooks';
-import { MapCanvas } from '@/features/map/components/MapCanvas';
+import { MapHost } from '@/features/map/components/MapHost';
 import HomePage from '@/pages/HomePage/HomePage';
 import NavigationPage from '@/pages/NavigationPage/NavigationPage';
 import SearchPage from '@/pages/SearchPage/SearchPage';
@@ -16,7 +16,7 @@ export function AppShell() {
 
   return (
     <>
-      <MapCanvas />
+      <MapHost />
       <IonRouterOutlet className="pr-outlet" animation={fadeTransition} swipeGesture={false}>
         <Route path={routePatterns.home} element={<HomePage />} />
         <Route path={routePatterns.search} element={<SearchPage />} />

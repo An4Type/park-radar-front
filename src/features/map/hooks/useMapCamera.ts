@@ -2,24 +2,21 @@ import { useMemo } from 'react';
 import { useMap } from 'react-map-gl/maplibre';
 import type { LatLng } from '@/api/types';
 import { boundsOf, toLngLat } from '@/shared/lib/geo';
+import { useCameraStore, type CameraPadding, type MapCamera } from '../cameraStore';
 
 export const MAP_ID = 'main';
 
-export interface CameraPadding {
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-}
+export type { CameraPadding, MapCamera } from '../cameraStore';
 
 export const OVERLAY_PADDING: CameraPadding = { top: 120, bottom: 150, left: 40, right: 40 };
 export const OVERVIEW_ZOOM = 15.2;
 const DURATION_MS = 900;
 
-export function useMapCamera() {
+export function useMapCamera(): MapCamera {
   const { [MAP_ID]: map } = useMap();
+  const fallback = useCameraStore((s) => s.fallback);
 
-  return useMemo(
+  const webgl = useMemo<MapCamera>(
     () => ({
       ready: Boolean(map),
       flyTo(center: LatLng, zoom = OVERVIEW_ZOOM): boolean {
@@ -50,4 +47,6 @@ export function useMapCamera() {
     }),
     [map],
   );
+
+  return fallback ?? webgl;
 }
