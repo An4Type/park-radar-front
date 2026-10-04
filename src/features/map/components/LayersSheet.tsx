@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useEscape } from '@/shared/hooks/useEscape';
 import { BottomSheet, Icon, IconButton, SegmentedControl, SwitchRow } from '@/shared/ui';
 import { LABEL_OPTIONS, LAYER_OPTIONS, useMapStore, type LabelKind } from '../mapStore';
 import styles from './LayersSheet.module.css';
@@ -15,6 +16,7 @@ export function LayersSheet({ onClose }: { onClose: () => void }) {
   const labels = useMapStore((s) => s.labels);
   const setLabel = useMapStore((s) => s.setLabel);
   const ref = useRef<HTMLDivElement>(null);
+  useEscape(onClose);
 
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')?.focus();
@@ -24,9 +26,6 @@ export function LayersSheet({ onClose }: { onClose: () => void }) {
     <div
       ref={ref}
       className={styles.root}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') onClose();
-      }}
     >
       <button type="button" tabIndex={-1} aria-label="Close map layers" className={styles.scrim} onClick={onClose} />
       <BottomSheet label="Map layers" onDismiss={onClose}>

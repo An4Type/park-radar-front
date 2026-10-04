@@ -63,3 +63,40 @@
     opacity: 0;
   }
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 1px solid var(--pr-border);
+  border-radius: 20px;
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--pr-duration-fast) var(--pr-ease),
+    color var(--pr-duration-fast) var(--pr-ease);
+}
+
+.chipOn {
+  border-color: transparent;
+  background: var(--pr-primary);
+  color: var(--pr-on-primary);
+  font-weight: 700;
+}

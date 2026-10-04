@@ -43,9 +43,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .chip,
+.chipFree,
+.chipMuted,
 .warn {
   display: inline-flex;
   align-items: center;
@@ -66,4 +71,15 @@
   background: var(--pr-warn-bg);
   color: var(--pr-warn-fg);
   font-weight: 700;
+}
+
+.chipFree {
+  background: #e7f6ec;
+  color: #166534;
+  font-weight: 700;
+}
+
+.chipMuted {
+  background: var(--pr-map-ground);
+  color: var(--pr-ink-2);
 }

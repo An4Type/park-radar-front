@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { parkingApi, queryKeys } from '@/api';
 import { useUserPosition } from '@/features/location/hooks';
 import { roundLatLng } from '@/shared/lib/geo';
+import { useMapStore } from '@/features/map/mapStore';
+import { applyFilters, hasActiveFilter } from './lib/filters';
 import { indexParking, type ParkingIndex } from './lib/hexIndex';
 
 export const LIVE_REFRESH_MS = 5_000;
@@ -37,4 +39,12 @@ export function useParking() {
 export function useParkingPoint(parkingId: string | undefined) {
   const { byId, isPending, isError, refetch } = useParking();
   return { point: parkingId ? byId.get(parkingId) : undefined, isPending, isError, refetch };
+}
+
+export function useVisibleParking() {
+  const parking = useParking();
+  const filters = useMapStore((s) => s.filters);
+  const visiblePoints = useMemo(() => applyFilters(parking.points, filters), [parking.points, filters]);
+  const visible = useMemo(() => indexParking(visiblePoints), [visiblePoints]);
+  return { ...parking, visiblePoints, visibleGeometry: visible.geometry, filtered: hasActiveFilter(filters) };
 }

@@ -4,7 +4,7 @@ import { HEX_RADIUS_M, hexAround, indexParking, nearestOf } from './hexIndex';
 
 function point(id: string, lat: number, lng: number, free = 10): ParkingPoint {
   return {
-    id, name: id, address: '', lat, lng, capacity: 50, free, accessibleSpaces: 0, evChargingSpaces: 0,
+    id, name: id, address: '', lat, lng, capacity: 50, free, accessibleSpaces: 0, freeAccessible: null, evChargingSpaces: 0, freeEv: null, paid: null, kind: null,
     active: true, confidence: 0.9, updatedAt: '2026-10-03T12:00:00Z',
   };
 }
