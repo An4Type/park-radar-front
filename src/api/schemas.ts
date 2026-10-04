@@ -8,7 +8,7 @@ export const LatLngSchema = z.object({
 export const ParkingDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
-  address: z.string().default(''),
+  address: z.string().nullish().transform((v) => v ?? ''),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   totalSpaces: z.number().int().nonnegative(),
@@ -17,12 +17,16 @@ export const ParkingDtoSchema = z.object({
   accessibleSpaces: z.number().int().nonnegative().default(0),
   evChargingSpaces: z.number().int().nonnegative().default(0),
   status: z.string(),
-  confidence: z.number().min(0).max(1).default(1),
-  lastUpdatedAt: z.string().datetime(),
+  confidence: z.number().min(0).max(1).nullish().transform((v) => v ?? null),
+  lastUpdatedAt: z.string().datetime({ offset: true }).nullish().transform((v) => v ?? null),
 });
 
 export const ParkingResponseSchema = z.object({
   parking: z.array(ParkingDtoSchema),
+});
+
+export const RawParkingResponseSchema = z.object({
+  parking: z.array(z.unknown()),
 });
 
 export const DestinationSchema = z.object({

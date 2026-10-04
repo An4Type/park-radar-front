@@ -1,4 +1,4 @@
-import { toParkingPoint } from './mappers';
+import { parseParkingItems, toParkingPoint } from './mappers';
 import { ParkingDtoSchema } from './schemas';
 
 const dto = ParkingDtoSchema.parse({
@@ -39,5 +39,27 @@ describe('toParkingPoint', () => {
 
   it('never reports more free spaces than exist', () => {
     expect(toParkingPoint({ ...dto, freeSpaces: 999 }).free).toBe(320);
+  });
+});
+
+describe('production payload', () => {
+  const base = {
+    id: 'x', name: 'Galeria Krakowska', address: 'Pawia 5, Kraków', latitude: 50.0676, longitude: 19.945,
+    totalSpaces: 320, occupiedSpaces: 170, freeSpaces: 150, status: 'ACTIVE',
+  };
+
+  it('accepts null confidence and lastUpdatedAt', () => {
+    const { snapshot, rejected } = parseParkingItems([{ ...base, confidence: null, lastUpdatedAt: null }]);
+    expect(rejected).toBe(0);
+    expect(snapshot.points[0]).toMatchObject({ confidence: null, updatedAt: null, free: 150, accessibleSpaces: 0 });
+  });
+
+  it('skips only the invalid facilities', () => {
+    const { snapshot, rejected } = parseParkingItems([
+      { ...base, confidence: 0.78, lastUpdatedAt: '2026-10-03T23:55:10.639Z' },
+      { ...base, id: 'broken', latitude: 'nope' },
+    ]);
+    expect(snapshot.points.map((p) => p.id)).toEqual(['x']);
+    expect(rejected).toBe(1);
   });
 });

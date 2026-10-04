@@ -28,8 +28,8 @@ export interface ParkingPoint {
   accessibleSpaces: number;
   evChargingSpaces: number;
   active: boolean;
-  confidence: number;
-  updatedAt: string;
+  confidence: number | null;
+  updatedAt: string | null;
 }
 
 export interface ParkingSnapshot {

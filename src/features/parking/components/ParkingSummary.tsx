@@ -13,7 +13,7 @@ export interface ParkingSummaryProps {
 export function ParkingSummary({ point, detail }: ParkingSummaryProps) {
   const level = pointLevel(point);
   const fillingUp = point.active && level !== 'full' && point.free < FILLING_UP_BELOW;
-  const estimated = point.active && point.confidence < LOW_CONFIDENCE;
+  const estimated = point.active && point.confidence !== null && point.confidence < LOW_CONFIDENCE;
 
   return (
     <div className={styles.summary}>
@@ -23,7 +23,8 @@ export function ParkingSummary({ point, detail }: ParkingSummaryProps) {
           <b className={level === 'full' ? styles.full : styles.free}>
             {!point.active ? 'Closed' : level === 'full' ? 'Full' : `${point.free} free`}
           </b>{' '}
-          of {point.capacity} · {detail}
+          of {point.capacity}
+          {detail && ` · ${detail}`}
         </p>
         {point.address && <p className={styles.sub}>{point.address}</p>}
       </div>

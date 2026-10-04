@@ -42,7 +42,9 @@ export default function ParkingPage() {
   const detail = point
     ? destination
       ? `${formatDistance(distanceMeters(point, destination.location))} walk`
-      : formatUpdatedAgo(point.updatedAt)
+      : point.updatedAt
+        ? formatUpdatedAgo(point.updatedAt)
+        : ''
     : '';
 
   return (
