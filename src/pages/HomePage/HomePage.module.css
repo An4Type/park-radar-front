@@ -13,3 +13,14 @@
   transform: translateY(-8px);
   pointer-events: none !important;
 }
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action {
+  flex: 1;
+  min-width: 0;
+}
