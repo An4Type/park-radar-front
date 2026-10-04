@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { env } from '@/config/env';
-import type { LatLng, Maneuver, Route, RouteStep } from '../types';
+import type { LatLng, Maneuver, Route, RouteStep } from '../../types';
 
 const OsrmStepSchema = z.object({
   distance: z.number(),

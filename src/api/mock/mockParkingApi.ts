@@ -2,17 +2,22 @@ import { distanceMeters, roundLatLng } from '@/shared/lib/geo';
 import { ApiError } from '../errors';
 import { toParkingSnapshot } from '../mappers';
 import { ParkingResponseSchema } from '../schemas';
-import type { Destination, LatLng, ParkingApi } from '../types';
+import type { Destination, LatLng, ParkingApi, Route } from '../types';
 import { DESTINATIONS } from './fixtures';
 import { parkingDtos } from './pointGenerator';
-import { osrmRoute } from './osrmRoute';
+import { osrmRoute } from './routing/osrmRoute';
+import { valhallaRoute } from './routing/valhallaRoute';
+import { withTimeout } from './routing/withTimeout';
 import { routeBetween } from './routeGenerator';
 
 export interface MockOptions {
   latency?: [number, number];
   now?: () => number;
-  roadRouting?: boolean;
+  routers?: ReadonlyArray<Router>;
+  routerTimeoutMs?: number;
 }
+
+type Router = (from: LatLng, to: LatLng, signal?: AbortSignal) => Promise<Route>;
 
 function delay([min, max]: [number, number], signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -43,7 +48,8 @@ const SUGGESTION_COUNT = 6;
 export function createMockParkingApi({
   latency = [120, 380],
   now = Date.now,
-  roadRouting = true,
+  routers = [valhallaRoute, osrmRoute],
+  routerTimeoutMs = 5_000,
 }: MockOptions = {}): ParkingApi {
   return {
     async getSnapshot({ near }, signal) {
@@ -69,16 +75,15 @@ export function createMockParkingApi({
     },
 
     async getRoute({ from, to }, signal) {
-      if (!roadRouting) {
-        await delay(latency, signal);
-        return routeBetween(from, to);
+      if (routers.length === 0) await delay(latency, signal);
+      for (const router of routers) {
+        try {
+          return await withTimeout((s) => router(from, to, s), routerTimeoutMs, signal);
+        } catch (error) {
+          if (signal?.aborted) throw new ApiError('aborted', 'Request was cancelled', { cause: error });
+        }
       }
-      try {
-        return await osrmRoute(from, to, signal);
-      } catch (error) {
-        if (signal?.aborted) throw new ApiError('aborted', 'Request was cancelled', { cause: error });
-        return routeBetween(from, to);
-      }
+      return routeBetween(from, to);
     },
   };
 }

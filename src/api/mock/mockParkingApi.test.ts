@@ -35,7 +35,7 @@ describe('mock parking API', () => {
   });
 
   it('builds a route that ends at the destination', async () => {
-    const api = createMockParkingApi({ latency: [0, 0], roadRouting: false });
+    const api = createMockParkingApi({ latency: [0, 0], routers: [] });
     const to = { lat: 52.4009, lng: 16.9281 };
     const route = RouteSchema.parse(await api.getRoute({ from: poznan, to }));
     expect(route.geometry.at(-1)).toEqual(to);
@@ -65,5 +65,24 @@ describe('Tauron Arena mock area', () => {
     const api = createMockParkingApi({ latency: [0, 0] });
     const [hit] = await api.searchDestinations({ query: 'tauron', near: poznan });
     expect(hit).toMatchObject({ name: 'Tauron Arena Kraków', location: arena });
+  });
+});
+
+describe('mock routing fallback', () => {
+  const from = { lat: 51.1079, lng: 17.0385 };
+  const to = { lat: 51.1079, lng: 17.0276 };
+  const hang = (_f: unknown, _t: unknown, signal?: AbortSignal) =>
+    new Promise<never>((_, reject) => signal?.addEventListener('abort', () => reject(new Error('aborted'))));
+
+  it('moves on when a router hangs, and still returns a route', async () => {
+    const api = createMockParkingApi({ latency: [0, 0], routers: [hang, hang], routerTimeoutMs: 20 });
+    const route = await api.getRoute({ from, to });
+    expect(route.geometry.at(-1)).toEqual(to);
+  });
+
+  it('uses the first router that answers', async () => {
+    const fake = { distanceMeters: 1, durationSeconds: 1, geometry: [from, to], steps: [{ maneuver: 'arrive' as const, instruction: 'x', location: to, distanceMeters: 1 }] };
+    const api = createMockParkingApi({ latency: [0, 0], routers: [hang, async () => fake], routerTimeoutMs: 20 });
+    expect(await api.getRoute({ from, to })).toBe(fake);
   });
 });
