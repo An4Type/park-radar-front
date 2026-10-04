@@ -22,6 +22,15 @@ npm run dev                  # http://localhost:5173
 | `npm run lint` / `typecheck` | ESLint / TypeScript |
 | `npm run cap:android` / `cap:ios` | Build, sync and open the native project |
 
+## Deployments
+
+| Branch | Command | Worker | URL |
+| --- | --- | --- | --- |
+| `main` | `npm run deploy` | `park-radar` (`wrangler.jsonc`) | https://park-radar.maksym782.workers.dev |
+| `krakow` | `npm run deploy:krakow` | `park-radar-krakow` (`wrangler.krakow.jsonc`) | https://park-radar-krakow.maksym782.workers.dev |
+
+The Kraków build uses `.env.krakow`, so its API calls go through its own Worker.
+
 ## Configuration
 
 All configuration is `VITE_*` env vars, validated at startup in `src/config/env.ts`.

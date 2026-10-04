@@ -21,6 +21,7 @@
 .env.*
 !.env.example
 !.env.production
+!.env.krakow
 
 # native build artefacts (platform folders have their own .gitignore too)
 /ios/DerivedData

@@ -18,7 +18,8 @@
     "live:ios": "cap run ios -l --host $(ipconfig getifaddr en0) --port 5173",
     "live:android": "\"${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb\" reverse tcp:5173 tcp:5173 && cap run android -l --host localhost --port 5173",
     "live:android:wifi": "cap run android -l --host $(ipconfig getifaddr en0) --port 5173",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:krakow": "tsc && vite build --mode krakow && wrangler deploy -c wrangler.krakow.jsonc"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
