@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { parkingApi, queryKeys, type LatLng, type ParkingPoint, type Route } from '@/api';
+import { parkingApi, queryKeys, type LatLng, type Route } from '@/api';
 import { useFrozenPosition } from '@/features/location/hooks';
 import { roundLatLng } from '@/shared/lib/geo';
 import {
@@ -9,6 +9,7 @@ import {
   progressAt,
   remainingLine,
   snapToRoute,
+  type PreparedRoute,
   type RouteProgress,
   type RouteSnap,
 } from './lib/routeMatcher';
@@ -26,7 +27,7 @@ export function useRoute(to: LatLng | undefined, from: LatLng) {
   });
 }
 
-export function useActiveRoute(point: ParkingPoint | undefined) {
+export function useActiveRoute(point: LatLng | undefined) {
   const routeOrigin = useTripStore((s) => s.routeOrigin);
   const frozen = useFrozenPosition();
   const origin = routeOrigin ?? frozen;
@@ -35,6 +36,7 @@ export function useActiveRoute(point: ParkingPoint | undefined) {
 }
 
 export interface RouteGuidance extends RouteProgress {
+  prepared: PreparedRoute;
   snapped: RouteSnap;
   onRoute: boolean;
   remainingGeometry: LatLng[];
@@ -59,7 +61,7 @@ export function useRouteGuidance(route: Route | undefined, position: LatLng): Ro
     if (onRoute) hint.current = snapped.segment;
     const progress = progressAt(prepared, snapped.along, minStep.current);
     if (onRoute) minStep.current = progress.stepIndex;
-    setGuidance({ ...progress, snapped, onRoute, remainingGeometry: remainingLine(prepared, snapped) });
+    setGuidance({ ...progress, prepared, snapped, onRoute, remainingGeometry: remainingLine(prepared, snapped) });
   }, [prepared, position]);
 
   return guidance;

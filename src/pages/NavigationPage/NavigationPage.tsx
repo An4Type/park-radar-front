@@ -8,8 +8,11 @@ import { InstructionCard } from '@/features/navigation/components/InstructionCar
 import { useActiveRoute, useRouteGuidance } from '@/features/navigation/hooks';
 import { useNavigationStore } from '@/features/navigation/navigationStore';
 import { useTripStore } from '@/features/navigation/tripStore';
+import { pointAtAlong, remainingFromAlong } from '@/features/navigation/lib/routeMatcher';
 import { useParkingPoint } from '@/features/parking/hooks';
 import { FILLING_UP_BELOW } from '@/features/parking/lib/availability';
+import { useAddress, useReport } from '@/features/reports/hooks';
+import { REPORT_LABEL } from '@/features/reports/lib/levels';
 import { formatArrival, formatDistance, formatDuration } from '@/shared/lib/format';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
@@ -17,9 +20,14 @@ import { ActionBadge, InfoBanner, MapScreen } from '@/shared/ui';
 
 const OFF_ROUTE_FIXES_BEFORE_REROUTE = 3;
 const MIN_REROUTE_INTERVAL_MS = 10_000;
+const GLIDE_MIN_MS = 300;
+const GLIDE_MAX_MS = 1_500;
+const GLIDE_MAX_JUMP_M = 250;
 
-export default function NavigationPage() {
-  const { parkingId } = useParams<{ parkingId: string }>();
+export type NavigationTarget = 'parking' | 'report';
+
+export default function NavigationPage({ target }: { target: NavigationTarget }) {
+  const { parkingId, reportId } = useParams<{ parkingId?: string; reportId?: string }>();
   const router = useIonRouter();
   const camera = useMapCamera();
   const { position, isFallback } = useUserPosition();
@@ -34,20 +42,53 @@ export default function NavigationPage() {
     if (!routeOrigin) startNavigation(position);
   }, [position, routeOrigin, startNavigation]);
 
-  const { point: parking } = useParkingPoint(parkingId);
-  const { data: route, isFetching: routing } = useActiveRoute(parking);
+  const { point: parking } = useParkingPoint(target === 'parking' ? parkingId : undefined);
+  const { report } = useReport(target === 'report' ? reportId : undefined);
+  const reportAddress = useAddress(report ?? null);
+  const goal = parking ?? report;
+  const goalName = parking?.name ?? (report ? reportAddress.data || 'Reported spot' : undefined);
+  const { data: route, isFetching: routing } = useActiveRoute(goal);
   const guidance = useRouteGuidance(route, position);
 
   const marker = guidance?.onRoute
     ? { position: guidance.snapped.point, bearing: guidance.snapped.bearing }
     : { position, bearing: heading };
 
+  const glide = useRef({ along: null as number | null, frame: 0, lastFix: 0 });
   useEffect(() => {
     if (!guidance) return;
-    setGuidance(
-      guidance.onRoute ? { position: guidance.snapped.point, bearing: guidance.snapped.bearing } : { position, bearing: heading },
-      guidance.onRoute ? guidance.remainingGeometry : null,
-    );
+    const state = glide.current;
+    cancelAnimationFrame(state.frame);
+    const now = performance.now();
+    const sinceLastFix = state.lastFix ? now - state.lastFix : GLIDE_MIN_MS;
+    state.lastFix = now;
+
+    if (!guidance.onRoute) {
+      state.along = null;
+      setGuidance({ position, bearing: heading }, null);
+      return;
+    }
+
+    const { prepared } = guidance;
+    const to = guidance.snapped.along;
+    const from = state.along;
+    if (from === null || Math.abs(to - from) > GLIDE_MAX_JUMP_M) {
+      state.along = to;
+      setGuidance({ position: guidance.snapped.point, bearing: guidance.snapped.bearing }, guidance.remainingGeometry);
+      return;
+    }
+
+    const duration = Math.min(GLIDE_MAX_MS, Math.max(GLIDE_MIN_MS, sinceLastFix));
+    const step = (time: number) => {
+      const k = Math.min(1, (time - now) / duration);
+      const along = from + (to - from) * k;
+      const { point, bearing } = pointAtAlong(prepared, along);
+      state.along = along;
+      setGuidance({ position: point, bearing }, remainingFromAlong(prepared, along));
+      if (k < 1) state.frame = requestAnimationFrame(step);
+    };
+    state.frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(state.frame);
   }, [guidance, heading, position, setGuidance]);
 
   useEffect(() => clearGuidance, [clearGuidance]);
@@ -104,7 +145,7 @@ export default function NavigationPage() {
           <InstructionCard
             maneuver={guidance?.arrived ? 'arrive' : step?.maneuver}
             distance={guidance?.arrived ? 'Arrived' : guidance ? formatDistance(guidance.distanceToStepMeters) : undefined}
-            instruction={guidance?.arrived && parking ? `Park at ${parking.name}` : step?.instruction}
+            instruction={guidance?.arrived && goalName ? `Park at ${goalName}` : step?.instruction}
           />
           {rerouting ? (
             <InfoBanner icon="navigate">Rerouting…</InfoBanner>
@@ -129,10 +170,14 @@ export default function NavigationPage() {
       bottom={
         <ActionBadge
           tone="dark"
-          title={parking && route ? `${formatDuration(remaining)} · ${parking.free} free` : 'Starting navigation…'}
-          subtitle={parking && route ? `Arrive ${formatArrival(remaining)} · ${parking.name}` : 'Tap to cancel'}
+          title={
+            goal && route
+              ? `${formatDuration(remaining)} · ${parking ? `${parking.free} free` : report ? REPORT_LABEL[report.level] : ''}`
+              : 'Starting navigation…'
+          }
+          subtitle={goal && route ? `Arrive ${formatArrival(remaining)} · ${goalName}` : 'Tap to cancel'}
           icon="close"
-          ariaLabel={parking ? `End navigation to ${parking.name}` : 'End navigation'}
+          ariaLabel={goalName ? `End navigation to ${goalName}` : 'End navigation'}
           onClick={end}
         />
       }

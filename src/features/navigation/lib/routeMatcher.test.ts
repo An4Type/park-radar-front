@@ -1,6 +1,6 @@
 import type { Route } from '@/api/types';
 import { distanceMeters } from '@/shared/lib/geo';
-import { OFF_ROUTE_M, prepareRoute, progressAt, remainingLine, snapToRoute } from './routeMatcher';
+import { OFF_ROUTE_M, pointAtAlong, prepareRoute, progressAt, remainingFromAlong, remainingLine, snapToRoute } from './routeMatcher';
 
 const start = { lat: 50.0, lng: 20.0 };
 const corner = { lat: 50.0, lng: 20.01 };
@@ -58,5 +58,20 @@ describe('routeMatcher', () => {
     expect(line[0]).toEqual(snap.point);
     expect(line.at(-1)).toEqual(end);
     expect(line).toHaveLength(3);
+  });
+
+  it('interpolates a point and bearing anywhere along the route', () => {
+    const half = prepared.cumulative[1] / 2;
+    const { point, bearing } = pointAtAlong(prepared, half);
+    expect(point.lat).toBeCloseTo(50, 6);
+    expect(point.lng).toBeCloseTo(20.005, 5);
+    expect(bearing).toBeCloseTo(90, 0);
+    expect(pointAtAlong(prepared, prepared.total + 100).point).toEqual(end);
+  });
+
+  it('gives the remaining line from an interpolated position', () => {
+    const line = remainingFromAlong(prepared, prepared.cumulative[1] + 10);
+    expect(line).toHaveLength(2);
+    expect(line.at(-1)).toEqual(end);
   });
 });

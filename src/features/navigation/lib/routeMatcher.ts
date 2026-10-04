@@ -116,3 +116,35 @@ export function progressAt(prepared: PreparedRoute, along: number, minStep = 0):
 export function remainingLine(prepared: PreparedRoute, snap: RouteSnap): LatLng[] {
   return [snap.point, ...prepared.points.slice(snap.segment + 1)];
 }
+
+function segmentAt(prepared: PreparedRoute, along: number): number {
+  const { cumulative } = prepared;
+  let low = 0;
+  let high = cumulative.length - 2;
+  while (low < high) {
+    const mid = (low + high + 1) >> 1;
+    if (cumulative[mid] <= along) low = mid;
+    else high = mid - 1;
+  }
+  return Math.max(0, low);
+}
+
+export function pointAtAlong(prepared: PreparedRoute, along: number): { point: LatLng; bearing: number; segment: number } {
+  const { points, cumulative, total } = prepared;
+  const clamped = Math.min(Math.max(along, 0), total);
+  const segment = segmentAt(prepared, clamped);
+  const a = points[segment];
+  const b = points[Math.min(segment + 1, points.length - 1)];
+  const length = cumulative[segment + 1] - cumulative[segment];
+  const t = length > 0 ? (clamped - cumulative[segment]) / length : 0;
+  return {
+    point: { lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t },
+    bearing: bearingDegrees(a, b),
+    segment,
+  };
+}
+
+export function remainingFromAlong(prepared: PreparedRoute, along: number): LatLng[] {
+  const { point, segment } = pointAtAlong(prepared, along);
+  return [point, ...prepared.points.slice(segment + 1)];
+}
