@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useT } from '@/shared/i18n';
 import { Icon } from '../Icon/Icon';
 import styles from './SearchField.module.css';
 
@@ -8,11 +9,12 @@ export interface SearchTriggerProps {
   className?: string;
 }
 
-export function SearchTrigger({ placeholder = 'Where to?', onClick, className }: SearchTriggerProps) {
+export function SearchTrigger({ placeholder, onClick, className }: SearchTriggerProps) {
+  const t = useT();
   return (
     <button type="button" className={[styles.trigger, className].filter(Boolean).join(' ')} onClick={onClick}>
       <Icon name="search" size={20} color="var(--pr-ink)" />
-      <span>{placeholder}</span>
+      <span>{placeholder ?? t.search.placeholder}</span>
     </button>
   );
 }
@@ -27,9 +29,10 @@ export interface SearchInputProps {
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(function SearchInput(
-  { value, onChange, onSubmit, placeholder = 'Where to?', label = 'Destination', autoFocus },
+  { value, onChange, onSubmit, placeholder, label, autoFocus },
   ref,
 ) {
+  const t = useT();
   return (
     <form
       role="search"
@@ -47,15 +50,15 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        aria-label={label}
-        placeholder={placeholder}
+        aria-label={label ?? t.search.label}
+        placeholder={placeholder ?? t.search.placeholder}
         value={value}
         autoFocus={autoFocus}
         onChange={(event) => onChange(event.target.value)}
         className={styles.input}
       />
       {value && (
-        <button type="button" className={styles.clear} aria-label="Clear search" onClick={() => onChange('')}>
+        <button type="button" className={styles.clear} aria-label={t.search.clear} onClick={() => onChange('')}>
           <Icon name="close" size={16} strokeWidth={2.4} />
         </button>
       )}

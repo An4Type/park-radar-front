@@ -6,6 +6,7 @@ import { AvailabilityTag } from '@/features/parking/components/AvailabilityTag';
 import { useVisibleParking } from '@/features/parking/hooks';
 import { pointLevel } from '@/features/parking/lib/availability';
 import { formatFee } from '@/features/parking/lib/parkingType';
+import { useT } from '@/shared/i18n';
 import { formatDistance } from '@/shared/lib/format';
 import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
@@ -21,6 +22,7 @@ export default function PlacePage() {
   const router = useIonRouter();
   const goBack = useGoBack(paths.search);
   const camera = useMapCamera();
+  const t = useT();
   const destination = useTripStore((s) => s.destination);
   const { visiblePoints, isPending, filtered } = useVisibleParking();
 
@@ -48,36 +50,36 @@ export default function PlacePage() {
   if (!destination) return <MapScreen />;
 
   return (
-    <MapScreen top={<IconButton icon="back" label="Back to search" onClick={goBack} className={styles.back} />}>
-      <BottomSheet label={`Parking near ${destination.name}`} onDismiss={goBack}>
+    <MapScreen top={<IconButton icon="back" label={t.place.backToSearch} onClick={goBack} className={styles.back} />}>
+      <BottomSheet label={t.place.parkingNearName(destination.name)} onDismiss={goBack}>
         <header className={styles.header}>
           <span className={styles.overline}>
             <Icon name="place" size={14} />
-            Parking near
+            {t.place.parkingNear}
           </span>
           <h1 className={styles.title}>{destination.name}</h1>
           {destination.detail && <p className={styles.detail}>{destination.detail}</p>}
         </header>
 
         {isPending ? (
-          <div className={styles.loading} aria-label="Loading parking">
+          <div className={styles.loading} aria-label={t.parking.loading}>
             <Skeleton height={16} width="60%" />
             <Skeleton height={16} width="45%" />
           </div>
         ) : nearby.length === 0 ? (
           <div className={styles.empty}>
-            <p>{filtered ? 'No parking here matches your filters.' : 'No parking data near this place yet.'}</p>
+            <p>{filtered ? t.place.noMatch : t.place.noData}</p>
             <Button variant="secondary" block onClick={goBack}>
-              Search somewhere else
+              {t.place.searchElsewhere}
             </Button>
           </div>
         ) : (
-          <List label="Nearby parkings">
+          <List label={t.place.nearby}>
             {nearby.map(({ point, walk }) => (
               <ListRow
                 key={point.id}
                 title={point.name}
-                subtitle={[`${formatDistance(walk)} walk`, point.active ? `${point.free} free` : 'Closed', formatFee(point.paid)]
+                subtitle={[t.common.walk(formatDistance(walk)), point.active ? t.common.free(point.free) : t.common.closed, formatFee(point.paid)]
                   .filter(Boolean)
                   .join(' · ')}
                 trailing={<AvailabilityTag level={point.active ? pointLevel(point) : 'full'} />}

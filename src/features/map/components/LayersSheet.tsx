@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useT } from '@/shared/i18n';
 import { useEscape } from '@/shared/hooks/useEscape';
 import { BottomSheet, Icon, IconButton, SegmentedControl, SwitchRow } from '@/shared/ui';
-import { LABEL_OPTIONS, LAYER_OPTIONS, useMapStore, type LabelKind } from '../mapStore';
+import { LABEL_KINDS, LAYER_MODES, useMapStore, type LabelKind } from '../mapStore';
 import styles from './LayersSheet.module.css';
 
 const LABEL_ICONS: Record<LabelKind, React.ReactNode> = {
@@ -16,6 +17,8 @@ export function LayersSheet({ onClose }: { onClose: () => void }) {
   const labels = useMapStore((s) => s.labels);
   const setLabel = useMapStore((s) => s.setLabel);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
+  const modeOptions = useMemo(() => LAYER_MODES.map((value) => ({ value, label: t.layers.modes[value] })), [t]);
   useEscape(onClose);
 
   useEffect(() => {
@@ -27,33 +30,33 @@ export function LayersSheet({ onClose }: { onClose: () => void }) {
       ref={ref}
       className={styles.root}
     >
-      <button type="button" tabIndex={-1} aria-label="Close map layers" className={styles.scrim} onClick={onClose} />
-      <BottomSheet label="Map layers" onDismiss={onClose}>
+      <button type="button" tabIndex={-1} aria-label={t.layers.close} className={styles.scrim} onClick={onClose} />
+      <BottomSheet label={t.layers.title} onDismiss={onClose}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Map layers</h2>
-          <IconButton icon="close" label="Close map layers" variant="flat" onClick={onClose} />
+          <h2 className={styles.title}>{t.layers.title}</h2>
+          <IconButton icon="close" label={t.layers.close} variant="flat" onClick={onClose} />
         </header>
 
         <section className={styles.section}>
-          <h3 className={styles.overline}>Show parking as</h3>
-          <SegmentedControl label="Show parking as" options={LAYER_OPTIONS} value={layerMode} onChange={setLayerMode} />
+          <h3 className={styles.overline}>{t.layers.showAs}</h3>
+          <SegmentedControl label={t.layers.showAs} options={modeOptions} value={layerMode} onChange={setLayerMode} />
         </section>
 
         <section className={styles.section}>
-          <h3 className={styles.overline}>Labels</h3>
+          <h3 className={styles.overline}>{t.layers.labels}</h3>
           <div className={styles.list}>
-            {LABEL_OPTIONS.map((option) => (
+            {LABEL_KINDS.map((kind) => (
               <SwitchRow
-                key={option.value}
-                icon={LABEL_ICONS[option.value]}
-                label={option.label}
-                description={option.description}
-                checked={labels[option.value]}
-                onChange={(checked) => setLabel(option.value, checked)}
+                key={kind}
+                icon={LABEL_ICONS[kind]}
+                label={t.layers.labelOptions[kind].label}
+                description={t.layers.labelOptions[kind].description}
+                checked={labels[kind]}
+                onChange={(checked) => setLabel(kind, checked)}
               />
             ))}
           </div>
-          <p className={styles.hint}>Labels appear when you zoom in.</p>
+          <p className={styles.hint}>{t.layers.hint}</p>
         </section>
       </BottomSheet>
     </div>

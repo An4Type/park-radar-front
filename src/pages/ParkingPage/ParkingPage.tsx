@@ -9,6 +9,7 @@ import { useTripStore } from '@/features/navigation/tripStore';
 import { ParkingSummary } from '@/features/parking/components/ParkingSummary';
 import { useParkingPoint } from '@/features/parking/hooks';
 import { hexPoints } from '@/features/parking/lib/hexIndex';
+import { useT } from '@/shared/i18n';
 import { formatDistance, formatDuration, formatUpdatedAgo } from '@/shared/lib/format';
 import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
@@ -23,6 +24,7 @@ export default function ParkingPage() {
   const { parkingId } = useParams<{ parkingId: string }>();
   const router = useIonRouter();
   const goBack = useGoBack();
+  const t = useT();
   const camera = useMapCamera();
   const { position } = useUserPosition();
   const destination = useTripStore((s) => s.destination);
@@ -41,26 +43,26 @@ export default function ParkingPage() {
 
   const detail = point
     ? destination
-      ? `${formatDistance(distanceMeters(point, destination.location))} walk`
+      ? t.common.walk(formatDistance(distanceMeters(point, destination.location)))
       : point.updatedAt
         ? formatUpdatedAgo(point.updatedAt)
         : ''
     : '';
 
   return (
-    <MapScreen top={<IconButton icon="back" label="Back to map" onClick={goBack} className={styles.back} />}>
-      <BottomSheet label={point?.name ?? 'Parking'} onDismiss={goBack}>
+    <MapScreen top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
+      <BottomSheet label={point?.name ?? t.common.parking} onDismiss={goBack}>
         {point ? (
           <>
             <ParkingSummary point={point} detail={detail} />
             <ActionBadge
-              title="Navigate"
+              title={t.common.navigate}
               subtitle={
                 route.data
                   ? `${formatDuration(route.data.durationSeconds)} · ${formatDistance(route.data.distanceMeters)}`
                   : route.isError
-                    ? 'Route unavailable'
-                    : 'Finding route…'
+                    ? t.common.routeUnavailable
+                    : t.common.findingRoute
               }
               icon="navigate"
               onClick={() => {
@@ -72,19 +74,19 @@ export default function ParkingPage() {
           </>
         ) : !isPending ? (
           <div className={styles.message}>
-            <h1 className={styles.title}>{isError ? 'Couldn’t load parking' : 'This parking is no longer listed'}</h1>
+            <h1 className={styles.title}>{isError ? t.parking.loadFailed : t.parking.notListed}</h1>
             {isError ? (
               <Button variant="secondary" block onClick={() => void refetch()}>
-                Try again
+                {t.common.tryAgain}
               </Button>
             ) : (
               <Button variant="secondary" block onClick={goBack}>
-                Back to map
+                {t.common.backToMap}
               </Button>
             )}
           </div>
         ) : (
-          <div className={styles.loading} aria-busy="true" aria-label="Loading parking">
+          <div className={styles.loading} aria-busy="true" aria-label={t.parking.loading}>
             <Skeleton width="60%" height={24} />
             <Skeleton width="45%" height={14} />
             <Skeleton height={10} radius={5} />

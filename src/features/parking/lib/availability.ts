@@ -14,13 +14,6 @@ export function availabilityLevel(free: number, capacity: number): AvailabilityL
 
 export const pointLevel = (point: Pick<ParkingPoint, 'free' | 'capacity'>) => availabilityLevel(point.free, point.capacity);
 
-export const AVAILABILITY_LABEL: Record<AvailabilityLevel, string> = {
-  many: 'Many free',
-  some: 'Some',
-  few: 'Few',
-  full: 'Full',
-};
-
 export const FILLING_UP_BELOW = 5;
 
 export const availableEv = (point: Pick<ParkingPoint, 'freeEv' | 'evChargingSpaces'>) => point.freeEv ?? point.evChargingSpaces;

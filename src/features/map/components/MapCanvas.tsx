@@ -14,6 +14,7 @@ import { useTripStore } from '@/features/navigation/tripStore';
 import { useVisibleParking } from '@/features/parking/hooks';
 import { useReports } from '@/features/reports/hooks';
 import { nearestOf } from '@/features/parking/lib/hexIndex';
+import { useT } from '@/shared/i18n';
 import { paths, screenFor } from '@/shared/navigation/paths';
 import { useMapStyle } from '../hooks/useMapStyle';
 import { MAP_ID, OVERVIEW_ZOOM } from '../hooks/useMapCamera';
@@ -56,6 +57,7 @@ export function MapCanvas() {
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
   const labels = useMapStore((s) => s.labels);
+  const closedLabel = useT().common.closed;
 
   const { byId, geometry, visiblePoints, visibleGeometry } = useVisibleParking();
   const { reports, byId: reportsById } = useReports();
@@ -91,8 +93,8 @@ export function MapCanvas() {
         free: labels.free && !navigating,
         accessible: labels.accessible && !navigating,
         ev: labels.ev && !navigating,
-      }),
-    [labels.accessible, labels.ev, labels.free, navigating],
+      }, closedLabel),
+    [closedLabel, labels.accessible, labels.ev, labels.free, navigating],
   );
 
   const interactiveLayerIds = [

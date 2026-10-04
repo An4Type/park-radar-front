@@ -137,27 +137,27 @@ export interface LabelVisibility {
 
 type Section = unknown[];
 
-const freeSection: Section = [
+const freeSection = (closed: string): Section => [
   ['image', 'pr-p'],
   {},
   ' ',
   {},
-  ['case', ['get', 'active'], ['to-string', ['get', 'free']], 'Closed'],
+  ['case', ['get', 'active'], ['to-string', ['get', 'free']], closed],
   { 'text-color': ['case', ['>', ['get', 'free'], 0], MAP_COLORS.ink, MAP_COLORS.danger] },
 ];
 
 const countSection = (image: string, key: string): Section => [['image', image], {}, ' ', {}, ['to-string', ['get', key]], {}];
 
-function formatted(show: LabelVisibility, withEv: boolean, withAccessible: boolean) {
+function formatted(show: LabelVisibility, withEv: boolean, withAccessible: boolean, closed: string) {
   const sections: Section[] = [];
-  if (show.free) sections.push(freeSection);
+  if (show.free) sections.push(freeSection(closed));
   if (withEv) sections.push(countSection('pr-ev', 'ev'));
   if (withAccessible) sections.push(countSection('pr-accessible', 'accessible'));
   const parts = sections.flatMap((section, i) => (i === 0 ? section : ['\n', {}, ...section]));
   return ['format', ...(parts.length ? parts : ['', {}])];
 }
 
-export function parkingLabels(show: LabelVisibility): { layer: LayerProps; visible: boolean } {
+export function parkingLabels(show: LabelVisibility, closed: string): { layer: LayerProps; visible: boolean } {
   const hasEv = ['>', ['get', 'ev'], 0];
   const hasAccessible = ['>', ['get', 'accessible'], 0];
   const ev = show.ev;
@@ -165,12 +165,12 @@ export function parkingLabels(show: LabelVisibility): { layer: LayerProps; visib
 
   const textField =
     ev && acc
-      ? ['case', ['all', hasEv, hasAccessible], formatted(show, true, true), hasEv, formatted(show, true, false), hasAccessible, formatted(show, false, true), formatted(show, false, false)]
+      ? ['case', ['all', hasEv, hasAccessible], formatted(show, true, true, closed), hasEv, formatted(show, true, false, closed), hasAccessible, formatted(show, false, true, closed), formatted(show, false, false, closed)]
       : ev
-        ? ['case', hasEv, formatted(show, true, false), formatted(show, false, false)]
+        ? ['case', hasEv, formatted(show, true, false, closed), formatted(show, false, false, closed)]
         : acc
-          ? ['case', hasAccessible, formatted(show, false, true), formatted(show, false, false)]
-          : formatted(show, false, false);
+          ? ['case', hasAccessible, formatted(show, false, true, closed), formatted(show, false, false, closed)]
+          : formatted(show, false, false, closed);
 
   const filter = show.free ? ['has', 'id'] : ['any', ...(ev ? [hasEv] : []), ...(acc ? [hasAccessible] : []), false];
 

@@ -8,6 +8,7 @@ import { useTripStore } from '@/features/navigation/tripStore';
 import { hexPoints } from '@/features/parking/lib/hexIndex';
 import { ReportSummary } from '@/features/reports/components/ReportSummary';
 import { useReport } from '@/features/reports/hooks';
+import { useT } from '@/shared/i18n';
 import { formatDistance, formatDuration } from '@/shared/lib/format';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
@@ -20,6 +21,7 @@ const SHEET_PADDING = { top: 110, bottom: 380, left: 48, right: 48 };
 export default function ReportPage() {
   const { reportId } = useParams<{ reportId: string }>();
   const goBack = useGoBack();
+  const t = useT();
   const camera = useMapCamera();
   const router = useIonRouter();
   const startNavigation = useTripStore((s) => s.startNavigation);
@@ -33,19 +35,19 @@ export default function ReportPage() {
   }, [camera, report]);
 
   return (
-    <MapScreen top={<IconButton icon="back" label="Back to map" onClick={goBack} className={styles.back} />}>
-      <BottomSheet label="Driver report" onDismiss={goBack}>
+    <MapScreen top={<IconButton icon="back" label={t.common.backToMap} onClick={goBack} className={styles.back} />}>
+      <BottomSheet label={t.report.pageLabel} onDismiss={goBack}>
         {report ? (
           <>
             <ReportSummary report={report} />
             <ActionBadge
-              title="Navigate"
+              title={t.common.navigate}
               subtitle={
                 route.data
                   ? `${formatDuration(route.data.durationSeconds)} · ${formatDistance(route.data.distanceMeters)}`
                   : route.isError
-                    ? 'Route unavailable'
-                    : 'Finding route…'
+                    ? t.common.routeUnavailable
+                    : t.common.findingRoute
               }
               icon="navigate"
               onClick={() => {
@@ -56,16 +58,16 @@ export default function ReportPage() {
             />
           </>
         ) : isPending ? (
-          <div className={styles.loading} aria-busy="true" aria-label="Loading report">
+          <div className={styles.loading} aria-busy="true" aria-label={t.report.loading}>
             <Skeleton width="40%" height={12} />
             <Skeleton width="70%" height={24} />
             <Skeleton width="55%" height={28} radius={14} />
           </div>
         ) : (
           <div className={styles.loading}>
-            <h1 className={styles.title}>This report has expired</h1>
+            <h1 className={styles.title}>{t.report.expired}</h1>
             <Button variant="secondary" block onClick={goBack}>
-              Back to map
+              {t.common.backToMap}
             </Button>
           </div>
         )}

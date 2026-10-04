@@ -57,7 +57,7 @@ describe('parking label layers', () => {
     const style = {
       ...baseStyle,
       sources: { ...baseStyle.sources, 'parking-labels': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } } },
-      layers: [{ ...parkingLabels(show).layer, source: 'parking-labels' }],
+      layers: [{ ...parkingLabels(show, 'Closed').layer, source: 'parking-labels' }],
     } as unknown as StyleSpecification;
     expect(validateStyleMin(style)).toEqual([]);
   });

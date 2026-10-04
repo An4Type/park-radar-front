@@ -1,0 +1,33 @@
+.button {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--pr-surface);
+  color: var(--pr-ink);
+  box-shadow: var(--pr-shadow-float);
+  cursor: pointer;
+  transition: transform var(--pr-duration-fast) var(--pr-ease);
+}
+
+.button:active {
+  transform: scale(0.94);
+}
+
+.button svg {
+  color: var(--pr-muted);
+}
+
+.code {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}

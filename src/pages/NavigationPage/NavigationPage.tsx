@@ -12,7 +12,7 @@ import { pointAtAlong, remainingFromAlong } from '@/features/navigation/lib/rout
 import { useParkingPoint } from '@/features/parking/hooks';
 import { FILLING_UP_BELOW } from '@/features/parking/lib/availability';
 import { useAddress, useReport } from '@/features/reports/hooks';
-import { REPORT_LABEL } from '@/features/reports/lib/levels';
+import { useT } from '@/shared/i18n';
 import { formatArrival, formatDistance, formatDuration } from '@/shared/lib/format';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
@@ -30,6 +30,7 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
   const { parkingId, reportId } = useParams<{ parkingId?: string; reportId?: string }>();
   const router = useIonRouter();
   const camera = useMapCamera();
+  const t = useT();
   const { position, isFallback } = useUserPosition();
   const heading = useLocationStore((s) => s.heading);
   const routeOrigin = useTripStore((s) => s.routeOrigin);
@@ -46,7 +47,7 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
   const { report } = useReport(target === 'report' ? reportId : undefined);
   const reportAddress = useAddress(report ?? null);
   const goal = parking ?? report;
-  const goalName = parking?.name ?? (report ? reportAddress.data || 'Reported spot' : undefined);
+  const goalName = parking?.name ?? (report ? reportAddress.data || t.common.reportedSpot : undefined);
   const { data: route, isFetching: routing } = useActiveRoute(goal);
   const guidance = useRouteGuidance(route, position);
 
@@ -144,22 +145,25 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
         <>
           <InstructionCard
             maneuver={guidance?.arrived ? 'arrive' : step?.maneuver}
-            distance={guidance?.arrived ? 'Arrived' : guidance ? formatDistance(guidance.distanceToStepMeters) : undefined}
-            instruction={guidance?.arrived && goalName ? `Park at ${goalName}` : step?.instruction}
+            distance={guidance?.arrived ? t.navigation.arrived : guidance ? formatDistance(guidance.distanceToStepMeters) : undefined}
+            instruction={guidance?.arrived && goalName ? t.navigation.parkAt(goalName) : step?.instruction}
           />
           {rerouting ? (
-            <InfoBanner icon="navigate">Rerouting…</InfoBanner>
+            <InfoBanner icon="navigate">{t.navigation.rerouting}</InfoBanner>
           ) : (
             parking &&
             parking.free < FILLING_UP_BELOW && (
               <InfoBanner tone="warning">
                 {parking.free === 0 ? (
                   <>
-                    <b>{parking.name}</b> is full right now
+                    <b>{parking.name}</b>
+                    {t.navigation.isFull}
                   </>
                 ) : (
                   <>
-                    Filling up · only <b>{parking.free}</b> {parking.free === 1 ? 'space' : 'spaces'} left
+                    {t.navigation.fillingUpBefore}
+                    <b>{parking.free}</b>
+                    {t.navigation.fillingUpAfter(parking.free)}
                   </>
                 )}
               </InfoBanner>
@@ -172,12 +176,12 @@ export default function NavigationPage({ target }: { target: NavigationTarget })
           tone="dark"
           title={
             goal && route
-              ? `${formatDuration(remaining)} · ${parking ? `${parking.free} free` : report ? REPORT_LABEL[report.level] : ''}`
-              : 'Starting navigation…'
+              ? `${formatDuration(remaining)} · ${parking ? t.common.free(parking.free) : report ? t.report.status[report.level] : ''}`
+              : t.navigation.starting
           }
-          subtitle={goal && route ? `Arrive ${formatArrival(remaining)} · ${goalName}` : 'Tap to cancel'}
+          subtitle={goal && route ? t.navigation.arrive(formatArrival(remaining), goalName ?? '') : t.navigation.tapToCancel}
           icon="close"
-          ariaLabel={goalName ? `End navigation to ${goalName}` : 'End navigation'}
+          ariaLabel={goalName ? t.navigation.endTo(goalName) : t.navigation.end}
           onClick={end}
         />
       }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { env } from '@/config/env';
+import { appLocale, messages } from '@/shared/i18n';
 import type { LatLng, Maneuver, Route, RouteStep } from '../../types';
 import { decodePolyline } from './polyline';
 
@@ -61,12 +62,14 @@ export async function valhallaRoute(from: LatLng, to: LatLng, signal?: AbortSign
     ],
     costing: 'auto',
     units: 'kilometers',
+    directions_options: { language: appLocale() },
   };
   const url = `${env.valhallaUrl}/route?json=${encodeURIComponent(JSON.stringify(request))}`;
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error(`Valhalla failed: ${response.status}`);
 
   const { trip } = ValhallaResponseSchema.parse(await response.json());
+  const arrive = messages().route.arrive;
   const legs = trip.legs;
   const geometry = legs.flatMap((leg) => decodePolyline(leg.shape));
   const shapes = legs.map((leg) => decodePolyline(leg.shape));
@@ -78,7 +81,7 @@ export async function valhallaRoute(from: LatLng, to: LatLng, signal?: AbortSign
     const maneuver = maneuverOf(m.type);
     return {
       maneuver,
-      instruction: maneuver === 'arrive' ? 'Arrive at parking' : m.instruction.replace(/\.$/, ''),
+      instruction: maneuver === 'arrive' ? arrive : m.instruction.replace(/\.$/, ''),
       location: m.location,
       distanceMeters: maneuvers[i].length * 1000,
     };
@@ -88,6 +91,6 @@ export async function valhallaRoute(from: LatLng, to: LatLng, signal?: AbortSign
     distanceMeters: trip.summary.length * 1000,
     durationSeconds: trip.summary.time,
     geometry,
-    steps: steps.length ? steps : [{ maneuver: 'arrive', instruction: 'Arrive at parking', location: to, distanceMeters: 0 }],
+    steps: steps.length ? steps : [{ maneuver: 'arrive', instruction: arrive, location: to, distanceMeters: 0 }],
   };
 }

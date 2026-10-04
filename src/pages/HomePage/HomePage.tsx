@@ -1,6 +1,7 @@
 import { useIonRouter, useIonViewWillEnter } from '@ionic/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { env } from '@/config/env';
+import { LanguageButton } from '@/features/language/components/LanguageButton';
 import { LocationHelpSheet } from '@/features/location/components/LocationHelpSheet';
 import { useUserPosition } from '@/features/location/hooks';
 import { geoErrorKind, requestLocationNow } from '@/features/location/services/geolocation';
@@ -12,6 +13,7 @@ import { useTripStore } from '@/features/navigation/tripStore';
 import { useVisibleParking } from '@/features/parking/hooks';
 import { estimateDriveSeconds, recommendParking } from '@/features/parking/lib/recommend';
 import { ReportSheet } from '@/features/reports/components/ReportSheet';
+import { useT } from '@/shared/i18n';
 import { formatDuration } from '@/shared/lib/format';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { paths } from '@/shared/navigation/paths';
@@ -25,6 +27,7 @@ const THANKS_MS = 4_000;
 export default function HomePage() {
   const router = useIonRouter();
   const camera = useMapCamera();
+  const t = useT();
   const { position, isFallback } = useUserPosition();
   const locationStatus = useLocationStore((s) => s.status);
   const locationBlocked = useLocationStore((s) => s.blocked);
@@ -83,31 +86,30 @@ export default function HomePage() {
   };
 
   const locationBanner = retrying ? (
-    <InfoBanner icon="locate">{requesting ? 'Asking for your location…' : 'Finding your location…'}</InfoBanner>
+    <InfoBanner icon="locate">{requesting ? t.home.askingLocation : t.home.findingLocation}</InfoBanner>
   ) : locationOff ? (
     <InfoBanner
       icon="locate"
       onClick={askForLocation}
       hint={
         locationBlocked
-          ? 'Tap to see how to turn it on'
+          ? t.home.hintBlocked
           : locationStatus === 'denied'
-            ? 'Tap to turn on location'
-            : 'Tap to try again'
+            ? t.home.hintDenied
+            : t.home.hintRetry
       }
     >
-      {locationStatus === 'denied' ? 'Location is off.' : 'Can’t find your location.'} Showing parking around{' '}
-      {env.defaultCenterName}.
+      {locationStatus === 'denied' ? t.home.locationOff : t.home.locationUnavailable} {t.home.showingAround(env.defaultCenterName)}
     </InfoBanner>
   ) : null;
 
   const action = parking.isPending ? (
-    <ActionBadge loading title="" icon="arrow" ariaLabel="Finding parking nearby" />
+    <ActionBadge loading title="" icon="arrow" ariaLabel={t.home.findingParking} />
   ) : parking.isError && !parking.data ? (
-    <ActionBadge title="Can’t load parking" subtitle="Tap to try again" icon="recent" onClick={() => void parking.refetch()} />
+    <ActionBadge title={t.home.cantLoadParking} subtitle={t.home.hintRetry} icon="recent" onClick={() => void parking.refetch()} />
   ) : best ? (
     <ActionBadge
-      title={`${best.free} free nearby`}
+      title={t.home.freeNearby(best.free)}
       subtitle={`${best.name} · ${formatDuration(estimateDriveSeconds(position, best))}`}
       icon="arrow"
       onClick={() => {
@@ -116,19 +118,22 @@ export default function HomePage() {
       }}
     />
   ) : parking.filtered ? (
-    <ActionBadge title="No parking matches filters" subtitle="Change filters" icon="filter" onClick={() => setSheet('filters')} />
+    <ActionBadge title={t.home.noMatchFilters} subtitle={t.home.changeFilters} icon="filter" onClick={() => setSheet('filters')} />
   ) : (
-    <ActionBadge title="No free spaces nearby" subtitle="Search another area" icon="search" onClick={() => router.push(paths.search)} />
+    <ActionBadge title={t.home.noFreeNearby} subtitle={t.home.searchAnotherArea} icon="search" onClick={() => router.push(paths.search)} />
   );
 
   return (
     <MapScreen
       top={
         <div className={sheet ? styles.hidden : styles.top}>
-          <SearchTrigger onClick={() => router.push(paths.search)} />
+          <div className={styles.searchRow}>
+            <SearchTrigger className={styles.search} onClick={() => router.push(paths.search)} />
+            <LanguageButton />
+          </div>
           {thanks && (
             <InfoBanner icon="check">
-              <b>Thanks!</b> Your report is on the map for other drivers.
+              <b>{t.home.thanksTitle}</b> {t.home.thanksBody}
             </InfoBanner>
           )}
           {!thanks && locationBanner}
@@ -138,14 +143,14 @@ export default function HomePage() {
         <>
           <IconButton
             icon="layers"
-            label="Map layers"
+            label={t.home.mapLayers}
             variant={sheet === 'layers' ? 'active' : 'float'}
             pressed={sheet === 'layers'}
             onClick={() => setSheet('layers')}
           />
           <IconButton
             icon="filter"
-            label={parking.filtered ? 'Filters, some active' : 'Filters'}
+            label={parking.filtered ? t.home.filtersActive : t.home.filters}
             variant={sheet === 'filters' ? 'active' : 'float'}
             pressed={sheet === 'filters'}
             badge={parking.filtered}
@@ -153,7 +158,7 @@ export default function HomePage() {
           />
           <IconButton
             icon="locate"
-            label="Center on my location"
+            label={t.home.centerOnMe}
             onClick={() => {
               if (isFallback) return askForLocation();
               tapFeedback();
@@ -167,7 +172,7 @@ export default function HomePage() {
           <div className={styles.action}>{action}</div>
           <IconButton
             icon="report"
-            label="Report free parking here"
+            label={t.home.reportHere}
             variant="large"
             onClick={() => {
               tapFeedback();

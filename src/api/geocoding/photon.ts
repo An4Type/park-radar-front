@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { currentLanguage } from '@/shared/i18n';
 import { distanceMeters } from '@/shared/lib/geo';
 import type { Destination, LatLng } from '../types';
 
@@ -48,7 +49,7 @@ export async function searchPlaces(query: string, near: LatLng, signal?: AbortSi
   const onAbort = () => controller.abort();
   signal?.addEventListener('abort', onAbort, { once: true });
   try {
-    const params = new URLSearchParams({ q, lat: String(near.lat), lon: String(near.lng), limit: '10', lang: 'en' });
+    const params = new URLSearchParams({ q, lat: String(near.lat), lon: String(near.lng), limit: '10', lang: currentLanguage() === 'pl' ? 'default' : 'en' });
     const response = await fetch(`${PHOTON}?${params}`, { signal: controller.signal });
     if (!response.ok) throw new Error(`Photon ${response.status}`);
     const { features } = ResponseSchema.parse(await response.json());

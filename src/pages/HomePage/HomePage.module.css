@@ -14,10 +14,22 @@
   pointer-events: none !important;
 }
 
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+}
+
 .bottomRow {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 20px;
 }
 
 .action {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { LatLng } from '@/api/types';
+import { currentLanguage } from '@/shared/i18n';
 import { roundLatLng } from '@/shared/lib/geo';
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/reverse';
@@ -31,7 +32,8 @@ export function formatAddress(data: z.infer<typeof AddressSchema>): string {
 
 export async function reverseGeocode(point: LatLng, signal?: AbortSignal): Promise<string> {
   const rounded = roundLatLng(point, 4);
-  const key = `${rounded.lat},${rounded.lng}`;
+  const language = currentLanguage();
+  const key = `${language}:${rounded.lat},${rounded.lng}`;
   const cached = cache.get(key);
   if (cached !== undefined) return cached;
 
@@ -39,7 +41,7 @@ export async function reverseGeocode(point: LatLng, signal?: AbortSignal): Promi
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   signal?.addEventListener('abort', () => controller.abort(), { once: true });
   try {
-    const url = `${NOMINATIM}?format=jsonv2&zoom=18&addressdetails=1&accept-language=en&lat=${rounded.lat}&lon=${rounded.lng}`;
+    const url = `${NOMINATIM}?format=jsonv2&zoom=18&addressdetails=1&accept-language=${language}&lat=${rounded.lat}&lon=${rounded.lng}`;
     const response = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
     if (!response.ok) return '';
     const address = formatAddress(AddressSchema.parse(await response.json()));

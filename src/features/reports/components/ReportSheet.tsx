@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEscape } from '@/shared/hooks/useEscape';
+import { useT } from '@/shared/i18n';
 import type { LatLng, ReportLevel } from '@/api/types';
 import { tapFeedback } from '@/shared/lib/haptics';
 import { BottomSheet, Button, Icon, IconButton, Skeleton } from '@/shared/ui';
@@ -18,6 +19,7 @@ export function ReportSheet({ location, onClose, onSent }: ReportSheetProps) {
   const address = useAddress(location);
   const submit = useSubmitReport();
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
   useEscape(onClose);
 
   useEffect(() => {
@@ -35,27 +37,28 @@ export function ReportSheet({ location, onClose, onSent }: ReportSheetProps) {
       ref={ref}
       className={styles.root}
     >
-      <button type="button" tabIndex={-1} aria-label="Close report" className={styles.scrim} onClick={onClose} />
-      <BottomSheet label="Report parking" onDismiss={onClose}>
+      <button type="button" tabIndex={-1} aria-label={t.report.close} className={styles.scrim} onClick={onClose} />
+      <BottomSheet label={t.report.sheetLabel} onDismiss={onClose}>
         <header className={styles.header}>
           <div className={styles.heading}>
-            <h2 className={styles.title}>How much free parking is here?</h2>
+            <h2 className={styles.title}>{t.report.question}</h2>
             <p className={styles.address}>
               <Icon name="place" size={16} />
               {!location ? (
-                'Turn on location to report'
+                t.report.turnOnLocation
               ) : address.isPending ? (
                 <Skeleton width={160} height={14} />
               ) : (
-                address.data || 'Your current location'
+                address.data || t.report.currentLocation
               )}
             </p>
           </div>
-          <IconButton icon="close" label="Close report" variant="flat" onClick={onClose} />
+          <IconButton icon="close" label={t.report.close} variant="flat" onClick={onClose} />
         </header>
 
-        <div role="radiogroup" aria-label="Free spaces around you" className={styles.options}>
-          {REPORT_LEVELS.map((option) => {
+        <div role="radiogroup" aria-label={t.report.levelsLabel} className={styles.options}>
+          {REPORT_LEVELS.map((value) => {
+            const option = { value, ...t.report.levels[value] };
             const selected = option.value === level;
             return (
               <button
@@ -74,10 +77,10 @@ export function ReportSheet({ location, onClose, onSent }: ReportSheetProps) {
           })}
         </div>
 
-        {submit.isError && <p className={styles.error}>Couldn’t send your report. Please try again.</p>}
+        {submit.isError && <p className={styles.error}>{t.report.failed}</p>}
 
         <Button block disabled={!location || !level || submit.isPending} onClick={send}>
-          {submit.isPending ? 'Sending…' : 'Send report'}
+          {submit.isPending ? t.report.sending : t.report.send}
         </Button>
       </BottomSheet>
     </div>

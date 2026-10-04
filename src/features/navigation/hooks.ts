@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { parkingApi, queryKeys, type LatLng, type Route } from '@/api';
 import { useFrozenPosition } from '@/features/location/hooks';
+import { useLanguage } from '@/shared/i18n';
 import { roundLatLng } from '@/shared/lib/geo';
 import {
   OFF_ROUTE_M,
@@ -18,9 +19,10 @@ import { useTripStore } from './tripStore';
 const NOWHERE: LatLng = { lat: 0, lng: 0 };
 
 export function useRoute(to: LatLng | undefined, from: LatLng) {
+  const { language } = useLanguage();
   const params = { from: roundLatLng(from, 4), to: roundLatLng(to ?? NOWHERE, 5) };
   return useQuery({
-    queryKey: queryKeys.route(params),
+    queryKey: [...queryKeys.route(params), language],
     queryFn: ({ signal }) => parkingApi.getRoute(params, signal),
     enabled: Boolean(to),
     staleTime: 5 * 60_000,

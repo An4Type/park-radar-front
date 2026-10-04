@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useMemo } from 'react';
 import { parkingApi, queryKeys, type LatLng, type ReportInput } from '@/api';
 import { useUserPosition } from '@/features/location/hooks';
+import { useLanguage } from '@/shared/i18n';
 import { roundLatLng } from '@/shared/lib/geo';
 import { reverseGeocode } from './lib/reverseGeocode';
 
@@ -28,9 +29,10 @@ export function useReport(reportId: string | undefined) {
 }
 
 export function useAddress(point: LatLng | null) {
+  const { language } = useLanguage();
   const key = point ? roundLatLng(point, 4) : null;
   return useQuery({
-    queryKey: ['address', key],
+    queryKey: ['address', key, language],
     queryFn: ({ signal }) => reverseGeocode(key!, signal),
     enabled: Boolean(key),
     staleTime: Infinity,

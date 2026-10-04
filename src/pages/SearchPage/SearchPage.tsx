@@ -9,6 +9,7 @@ import { AvailabilityTag } from '@/features/parking/components/AvailabilityTag';
 import { useParking } from '@/features/parking/hooks';
 import { pointLevel } from '@/features/parking/lib/availability';
 import { parkingForDestination } from '@/features/parking/lib/recommend';
+import { useT } from '@/shared/i18n';
 import { formatDistance } from '@/shared/lib/format';
 import { distanceMeters } from '@/shared/lib/geo';
 import { tapFeedback } from '@/shared/lib/haptics';
@@ -44,6 +45,7 @@ export default function SearchPage({
 }: SearchPageProps) {
   const router = useIonRouter();
   const goBack = useGoBack();
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const { position } = useUserPosition();
@@ -108,15 +110,15 @@ export default function SearchPage({
   return (
     <IonPage className={styles.page}>
       <header className={styles.header}>
-        <IconButton icon="back" label="Back to map" variant="flat" onClick={goBack} />
+        <IconButton icon="back" label={t.common.backToMap} variant="flat" onClick={goBack} />
         <SearchInput ref={inputRef} value={query} onChange={setQuery} />
       </header>
 
       <main className={styles.body} aria-busy={search.isFetching || search.isTyping}>
-        {!search.query && results.length > 0 && <h2 className={styles.overline}>Suggestions</h2>}
+        {!search.query && results.length > 0 && <h2 className={styles.overline}>{t.search.suggestions}</h2>}
 
         {search.isPending && results.length === 0 ? (
-          <div className={styles.skeletons} aria-label="Loading places">
+          <div className={styles.skeletons} aria-label={t.search.loading}>
             {[0, 1, 2].map((i) => (
               <div key={i} className={styles.skeletonRow}>
                 <Skeleton width="55%" height={16} />
@@ -126,22 +128,22 @@ export default function SearchPage({
           </div>
         ) : search.isError && results.length === 0 ? (
           <div className={styles.message}>
-            <p>Couldn’t search right now.</p>
+            <p>{t.search.failed}</p>
             <Button variant="text" onClick={() => void search.refetch()}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           </div>
         ) : results.length === 0 ? (
-          <p className={styles.message}>No places match “{search.query}”.</p>
+          <p className={styles.message}>{t.search.noMatch(search.query)}</p>
         ) : (
-          <List label="Places">
+          <List label={t.search.places}>
             {results.map((result) => (
               <ListRow
                 key={result.key}
                 title={result.name}
                 subtitle={[
                   formatDistance(distanceMeters(position, result.location)),
-                  result.isParking ? 'Parking' : result.detail,
+                  result.isParking ? t.common.parking : result.detail,
                 ]
                   .filter(Boolean)
                   .join(' · ')}
@@ -149,7 +151,7 @@ export default function SearchPage({
                   result.parking ? (
                     <AvailabilityTag level={pointLevel(result.parking)} />
                   ) : result.isParking ? (
-                    <span className={styles.none}>No parking</span>
+                    <span className={styles.none}>{t.search.noParking}</span>
                   ) : (
                     <Icon name="arrow" size={18} color="var(--pr-muted)" />
                   )

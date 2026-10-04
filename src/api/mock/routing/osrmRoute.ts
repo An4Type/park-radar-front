@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { env } from '@/config/env';
+import { messages } from '@/shared/i18n';
 import type { LatLng, Maneuver, Route, RouteStep } from '../../types';
 
 const OsrmStepSchema = z.object({
@@ -51,25 +52,18 @@ function maneuverOf({ maneuver: { type, modifier } }: OsrmStep): Maneuver {
   }
 }
 
-const ordinal = (n: number) => `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}`;
-
 function instructionOf(step: OsrmStep): string {
+  const t = messages().route;
   const { type, modifier, exit } = step.maneuver;
-  const onto = step.name ? ` onto ${step.name}` : '';
-  const side = modifier?.includes('left') ? 'left' : 'right';
+  const left = Boolean(modifier?.includes('left'));
 
-  if (type === 'arrive') return 'Arrive at parking';
-  if (type === 'roundabout' || type === 'rotary') {
-    return `At the roundabout, take the ${ordinal(exit ?? 1)} exit${onto}`;
-  }
-  if (modifier === 'uturn') return `Make a U-turn${onto}`;
-  if (type === 'fork' || type === 'off ramp' || type === 'on ramp') return `Keep ${side}${onto}`;
-  if (type === 'merge') return `Merge ${side}${onto}`;
-  if (modifier === 'straight' || type === 'new name' || type === 'continue') {
-    return step.name ? `Continue onto ${step.name}` : 'Continue straight';
-  }
-  const how = modifier?.startsWith('slight') ? 'Bear' : 'Turn';
-  return `${how} ${side}${onto || ' onto the road'}`;
+  if (type === 'arrive') return t.arrive;
+  if (type === 'roundabout' || type === 'rotary') return t.roundabout(exit ?? 1, step.name);
+  if (modifier === 'uturn') return t.uturn(step.name);
+  if (type === 'fork' || type === 'off ramp' || type === 'on ramp') return t.keep(left, step.name);
+  if (type === 'merge') return t.merge(left, step.name);
+  if (modifier === 'straight' || type === 'new name' || type === 'continue') return t.continueOnto(step.name);
+  return t.turn(left, Boolean(modifier?.startsWith('slight')), step.name);
 }
 
 const toLatLng = ([lng, lat]: [number, number]): LatLng => ({ lat, lng });

@@ -14,6 +14,7 @@ import { useReports } from '@/features/reports/hooks';
 import { hexAround } from '@/features/parking/lib/hexIndex';
 import { availableAccessible, availableEv, pointLevel, type AvailabilityLevel } from '@/features/parking/lib/availability';
 import { HEX_RADIUS_M, nearestOf } from '@/features/parking/lib/hexIndex';
+import { useT } from '@/shared/i18n';
 import { distanceMeters } from '@/shared/lib/geo';
 import { paths, screenFor } from '@/shared/navigation/paths';
 import { useCameraStore } from '../cameraStore';
@@ -46,10 +47,10 @@ const ICON_P = `<span class="${styles.p}">P</span>`;
 const ICON_EV = `<svg width="13" height="13" viewBox="0 0 24 24" fill="${MAP_COLORS.primary}"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg>`;
 const ICON_ACCESSIBLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${MAP_COLORS.primary}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4.5" r="1.6" fill="${MAP_COLORS.primary}"/><path d="M11 8v5h5l2.5 5M11 10.5h4M8.2 11.5a5.5 5.5 0 1 0 7.3 7.3"/></svg>`;
 
-function labelRows(p: ParkingPoint, show: { free: boolean; accessible: boolean; ev: boolean }) {
+function labelRows(p: ParkingPoint, show: { free: boolean; accessible: boolean; ev: boolean }, closed: string) {
   const rows: string[] = [];
   if (show.free) {
-    const text = p.active ? String(p.free) : 'Closed';
+    const text = p.active ? String(p.free) : closed;
     rows.push(`<span class="${styles.row}">${ICON_P}<b class="${p.free > 0 ? '' : styles.full}">${text}</b></span>`);
   }
   if (show.ev && availableEv(p) > 0) rows.push(`<span class="${styles.row}">${ICON_EV}<b>${availableEv(p)}</b></span>`);
@@ -74,6 +75,7 @@ export default function LeafletMap() {
   const heading = useLocationStore((s) => s.heading);
   const layerMode = useMapStore((s) => s.layerMode);
   const labels = useMapStore((s) => s.labels);
+  const closedLabel = useT().common.closed;
   const setFallback = useCameraStore((s) => s.setFallback);
   const { byId, geometry, visiblePoints: points, visibleGeometry } = useVisibleParking();
   const { reports, byId: reportsById } = useReports();
@@ -261,7 +263,7 @@ export default function LeafletMap() {
       .slice(0, MAX_LABELS * 2);
 
     for (const point of visible) {
-      const rows = labelRows(point, show);
+      const rows = labelRows(point, show, closedLabel);
       if (rows.length === 0) continue;
       const height = rows.length * 18 + 8;
       const anchor = map.latLngToContainerPoint(latLng(point));
@@ -276,7 +278,7 @@ export default function LeafletMap() {
         .addTo(labelLayer);
       if (placed.length >= MAX_LABELS) break;
     }
-  }, [map, points, labels.free, labels.accessible, labels.ev, navigating, view, labelLayer]);
+  }, [map, points, labels.free, labels.accessible, labels.ev, navigating, view, labelLayer, closedLabel]);
 
   useEffect(() => {
     selectedLayer.clearLayers();

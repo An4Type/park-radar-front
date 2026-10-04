@@ -6,30 +6,10 @@ import { safeStorage } from '@/shared/lib/safeStorage';
 export type LayerMode = 'auto' | 'zones' | 'heat' | 'off';
 export type LabelKind = 'free' | 'accessible' | 'ev';
 
-export const LAYER_OPTIONS: ReadonlyArray<{ value: LayerMode; label: string }> = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'zones', label: 'Hexes' },
-  { value: 'heat', label: 'Heat' },
-  { value: 'off', label: 'Off' },
-];
-
-export const LABEL_OPTIONS: ReadonlyArray<{ value: LabelKind; label: string; description: string }> = [
-  { value: 'free', label: 'Free spaces', description: 'Free spaces on every parking' },
-  { value: 'accessible', label: 'Accessible spaces', description: 'Spaces for disabled drivers' },
-  { value: 'ev', label: 'EV charging', description: 'Spaces with a charger' },
-];
-
-export const FEE_OPTIONS: ReadonlyArray<{ value: FeeFilter; label: string }> = [
-  { value: 'any', label: 'Any' },
-  { value: 'free', label: 'Free' },
-  { value: 'paid', label: 'Paid' },
-];
-
-export const FILTER_OPTIONS: ReadonlyArray<{ value: FilterKind; label: string; description: string }> = [
-  { value: 'free', label: 'Free spaces now', description: 'Hide full and closed parkings' },
-  { value: 'ev', label: 'EV charging', description: 'Parkings with chargers' },
-  { value: 'accessible', label: 'Accessible spaces', description: 'Parkings with spaces for disabled drivers' },
-];
+export const LAYER_MODES: ReadonlyArray<LayerMode> = ['auto', 'zones', 'heat', 'off'];
+export const LABEL_KINDS: ReadonlyArray<LabelKind> = ['free', 'accessible', 'ev'];
+export const FEE_FILTERS: ReadonlyArray<FeeFilter> = ['any', 'free', 'paid'];
+export const FILTER_KINDS: ReadonlyArray<FilterKind> = ['free', 'ev', 'accessible'];
 
 interface MapState {
   layerMode: LayerMode;
